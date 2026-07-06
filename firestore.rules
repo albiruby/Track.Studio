@@ -1,0 +1,197 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Core Helper Functions ---
+    
+    // Auth Check
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Verify email if email verification is enabled, otherwise default to simple auth check.
+    // For local dev and ease of initial onboarding, we require basic authentication.
+    function isAuthenticated() {
+      return isSignedIn();
+    }
+    
+    // Check if the current user is the owner by document ID
+    function isOwnerById(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if the current user is the owner by checking document userId field
+    function isOwnerOfDoc(resourceData) {
+      return isAuthenticated() && request.auth.uid == resourceData.userId;
+    }
+
+    // Check if user is Admin
+    function isAdmin() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // ID Validation Guard (Prevent resource-poisoning attacks on doc IDs)
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Incoming & Existing data shortcuts
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    // Existing data shortcut
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity-specific Validation Blueprints (Anti-Update-Gap) ---
+
+    // Athlete Profile Schema Validator
+    function isValidAthleteProfile(data) {
+      return data.keys().hasAll(['userId', 'maxHeartRate', 'restingHeartRate', 'functionalThresholdPace', 'createdAt', 'updatedAt'])
+        && data.userId is string
+        && data.userId == request.auth.uid
+        && data.maxHeartRate is int
+        && data.maxHeartRate > 30
+        && data.maxHeartRate < 250
+        && data.restingHeartRate is int
+        && data.restingHeartRate > 25
+        && data.restingHeartRate < 150
+        && data.functionalThresholdPace is number
+        && data.functionalThresholdPace >= 0.0
+        && data.functionalThresholdPace < 15.0 // ~2:13 min/mile limit
+        && data.createdAt is string
+        && data.updatedAt is string;
+    }
+
+    // Normalized Activity Schema Validator
+    function isValidNormalizedActivity(data) {
+      return data.keys().hasAll(['id', 'userId', 'source', 'sourceActivityId', 'title', 'sportType', 'startDate', 'utcStartDate', 'timezone', 'distance', 'movingTime', 'elapsedTime', 'averageSpeed', 'maxSpeed', 'hasStreams', 'createdAt', 'updatedAt'])
+        && data.id is string
+        && data.id.size() <= 128
+        && data.userId is string
+        && data.userId == request.auth.uid
+        && data.source is string
+        && (data.source == 'strava' || data.source == 'intervals_icu' || data.source == 'manual')
+        && data.sourceActivityId is string
+        && data.sourceActivityId.size() <= 128
+        && data.title is string
+        && data.title.size() <= 200
+        && data.sportType is string
+        && (data.sportType == 'Run' || data.sportType == 'TrailRun' || data.sportType == 'Treadmill')
+        && data.startDate is string
+        && data.utcStartDate is string
+        && data.timezone is string
+        && data.timezone.size() <= 100
+        && data.distance is number
+        && data.distance >= 0.0
+        && data.movingTime is number
+        && data.movingTime >= 0.0
+        && data.elapsedTime is number
+        && data.elapsedTime >= 0.0
+        && data.averageSpeed is number
+        && data.maxSpeed is number
+        && data.hasStreams is bool
+        && data.createdAt is string
+        && data.updatedAt is string;
+    }
+
+    // Single Activity Analysis Validator
+    function isValidSingleActivityAnalysis(data) {
+      return data.keys().hasAll(['activityId', 'userId', 'runningStressScore', 'intensityFactor', 'efficiencyFactor', 'pacingVariability', 'calculatedAt'])
+        && data.activityId is string
+        && data.activityId.size() <= 128
+        && data.userId is string
+        && data.userId == request.auth.uid
+        && data.runningStressScore is number
+        && data.runningStressScore >= 0.0
+        && data.intensityFactor is number
+        && data.intensityFactor >= 0.0
+        && data.efficiencyFactor is number
+        && data.pacingVariability is number
+        && data.calculatedAt is string;
+    }
+
+    // Performance Trends Validator
+    function isValidPerformanceTrends(data) {
+      return data.keys().hasAll(['userId', 'currentFitness', 'currentFatigue', 'currentForm', 'ctlRampRate', 'calculatedAt'])
+        && data.userId is string
+        && data.userId == request.auth.uid
+        && data.currentFitness is number
+        && data.currentFitness >= 0.0
+        && data.currentFatigue is number
+        && data.currentFatigue >= 0.0
+        && data.currentForm is number
+        && data.ctlRampRate is number
+        && data.calculatedAt is string;
+    }
+
+    // --- Firestore Collection Rules Matchers ---
+
+    // Athlete Profile Matcher
+    match /athleteProfiles/{userId} {
+      allow get: if isOwnerById(userId) || isAdmin();
+      allow create: if isOwnerById(userId) && isValidId(userId) && isValidAthleteProfile(incoming());
+      allow update: if isOwnerById(userId) 
+                    && isValidAthleteProfile(incoming())
+                    && incoming().userId == existing().userId
+                    && incoming().createdAt == existing().createdAt;
+      allow delete: if isOwnerById(userId);
+    }
+
+    // Activities Collection Matcher
+    match /activities/{activityId} {
+      allow get: if isOwnerOfDoc(existing()) || isAdmin();
+      allow list: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      allow create: if isAuthenticated() 
+                    && isValidId(activityId) 
+                    && incoming().userId == request.auth.uid
+                    && isValidNormalizedActivity(incoming());
+                    
+      allow update: if isAuthenticated()
+                    && isOwnerOfDoc(existing())
+                    && incoming().userId == existing().userId
+                    && incoming().id == existing().id
+                    && incoming().createdAt == existing().createdAt
+                    && isValidNormalizedActivity(incoming());
+                    
+      allow delete: if isAuthenticated() && isOwnerOfDoc(existing());
+    }
+
+    // Analyses Collection Matcher
+    match /analyses/{activityId} {
+      allow get: if isOwnerOfDoc(existing()) || isAdmin();
+      allow list: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      allow create: if isAuthenticated()
+                    && isValidId(activityId)
+                    && incoming().userId == request.auth.uid
+                    && isValidSingleActivityAnalysis(incoming());
+                    
+      allow update: if isAuthenticated()
+                    && isOwnerOfDoc(existing())
+                    && incoming().userId == existing().userId
+                    && incoming().activityId == existing().activityId
+                    && isValidSingleActivityAnalysis(incoming());
+                    
+      allow delete: if isAuthenticated() && isOwnerOfDoc(existing());
+    }
+
+    // Performance Trends Matcher
+    match /trends/{userId} {
+      allow get: if isOwnerById(userId) || isAdmin();
+      allow create: if isOwnerById(userId) && isValidId(userId) && isValidPerformanceTrends(incoming());
+      allow update: if isOwnerById(userId)
+                    && isValidPerformanceTrends(incoming())
+                    && incoming().userId == existing().userId;
+      allow delete: if isOwnerById(userId);
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "athleteProfile": {
+      "title": "Athlete Profile",
+      "description": "Athlete physiological profile and custom running training zones.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "weightKg": { "type": "number" },
+        "gender": { "type": "string", "enum": ["male", "female", "prefer-not-to-say"] },
+        "dateOfBirth": { "type": "string" },
+        "maxHeartRate": { "type": "integer" },
+        "restingHeartRate": { "type": "integer" },
+        "functionalThresholdPace": { "type": "number" },
+        "lactateThresholdHeartRate": { "type": "integer" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "maxHeartRate", "restingHeartRate", "functionalThresholdPace", "createdAt", "updatedAt"]
+    },
+    "normalizedActivity": {
+      "title": "Normalized Run Activity",
+      "description": "Unified and normalized data model representing a single running activity.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "source": { "type": "string", "enum": ["strava", "intervals_icu", "manual"] },
+        "sourceActivityId": { "type": "string" },
+        "title": { "type": "string" },
+        "sportType": { "type": "string", "enum": ["Run", "TrailRun", "Treadmill"] },
+        "startDate": { "type": "string" },
+        "utcStartDate": { "type": "string" },
+        "timezone": { "type": "string" },
+        "distance": { "type": "number" },
+        "movingTime": { "type": "number" },
+        "elapsedTime": { "type": "number" },
+        "averageSpeed": { "type": "number" },
+        "maxSpeed": { "type": "number" },
+        "averageHeartrate": { "type": "integer" },
+        "maxHeartrate": { "type": "integer" },
+        "averageCadence": { "type": "integer" },
+        "totalElevationGain": { "type": "number" },
+        "totalElevationLoss": { "type": "number" },
+        "hasStreams": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "source", "sourceActivityId", "title", "sportType", "startDate", "utcStartDate", "timezone", "distance", "movingTime", "elapsedTime", "averageSpeed", "maxSpeed", "hasStreams", "createdAt", "updatedAt"]
+    },
+    "singleActivityAnalysis": {
+      "title": "Single Activity Analysis",
+      "description": "Calculated deterministic performance indicators for an individual running workout.",
+      "type": "object",
+      "properties": {
+        "activityId": { "type": "string" },
+        "userId": { "type": "string" },
+        "runningStressScore": { "type": "number" },
+        "intensityFactor": { "type": "number" },
+        "efficiencyFactor": { "type": "number" },
+        "aerobicDecoupling": { "type": "number" },
+        "pacingVariability": { "type": "number" },
+        "calculatedAt": { "type": "string" }
+      },
+      "required": ["activityId", "userId", "runningStressScore", "intensityFactor", "efficiencyFactor", "pacingVariability", "calculatedAt"]
+    },
+    "performanceTrends": {
+      "title": "Performance Trends",
+      "description": "Historical trend data points tracking fitness, fatigue, form, and peak paces.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "currentFitness": { "type": "number" },
+        "currentFatigue": { "type": "number" },
+        "currentForm": { "type": "number" },
+        "ctlRampRate": { "type": "number" },
+        "calculatedAt": { "type": "string" }
+      },
+      "required": ["userId", "currentFitness", "currentFatigue", "currentForm", "ctlRampRate", "calculatedAt"]
+    }
+  },
+  "firestore": {
+    "/athleteProfiles/{userId}": {
+      "schema": { "$ref": "#/entities/athleteProfile" },
+      "description": "Stores user physical details and heart rate/pace training zones"
+    },
+    "/activities/{activityId}": {
+      "schema": { "$ref": "#/entities/normalizedActivity" },
+      "description": "Stores standard canonical running activities synchronized from external platforms"
+    },
+    "/analyses/{activityId}": {
+      "schema": { "$ref": "#/entities/singleActivityAnalysis" },
+      "description": "Stores analytical calculations of specific runs"
+    },
+    "/trends/{userId}": {
+      "schema": { "$ref": "#/entities/performanceTrends" },
+      "description": "Stores athlete's fitness-fatigue CTL/ATL metrics"
+    }
+  }
+}

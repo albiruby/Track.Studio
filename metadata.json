@@ -1,0 +1,6 @@
+{
+  "name": "Track.Studio",
+  "description": "Track.Studio is a modern running performance analysis platform focusing on data acquisition, data processing, data analysis, and performance evaluation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
