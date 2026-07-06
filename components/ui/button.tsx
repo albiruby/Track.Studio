@@ -1,50 +1,42 @@
+'use client';
+
 import * as React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 
-const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:pointer-events-none select-none cursor-pointer',
-  {
-    variants: {
-      variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border border-transparent',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-transparent',
-        outline: 'border border-border bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground',
-        ghost: 'text-foreground hover:bg-accent hover:text-accent-foreground border border-transparent',
-        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm border border-transparent',
-        link: 'text-primary underline-offset-4 hover:underline border border-transparent bg-transparent',
-      },
-      size: {
-        default: 'h-9 px-4 py-2',
-        sm: 'h-8 px-3 rounded-md text-xs',
-        lg: 'h-10 px-8 rounded-md',
-        icon: 'h-9 w-9 p-0',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
-    },
-  }
-);
-
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
   isLoading?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, isLoading, children, disabled, ...props }, ref) => {
+  ({ className, variant = 'default', size = 'default', isLoading = false, children, disabled, ...props }, ref) => {
     return (
       <button
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-xs font-semibold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer',
+          {
+            'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90': variant === 'default',
+            'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90': variant === 'destructive',
+            'border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground': variant === 'outline',
+            'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80': variant === 'secondary',
+            'hover:bg-accent hover:text-accent-foreground text-foreground': variant === 'ghost',
+            'text-primary underline-offset-4 hover:underline bg-transparent': variant === 'link',
+          },
+          {
+            'h-9 px-4 py-2': size === 'default',
+            'h-8 rounded-md px-3 text-[10px]': size === 'sm',
+            'h-10 rounded-md px-8': size === 'lg',
+            'h-9 w-9': size === 'icon',
+          },
+          className
+        )}
         ref={ref}
         disabled={disabled || isLoading}
         {...props}
       >
-        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin text-current" />}
+        {isLoading && <Spinner size="sm" className="mr-2" />}
         {children}
       </button>
     );
@@ -52,4 +44,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = 'Button';
 
-export { Button, buttonVariants };
+export { Button };
