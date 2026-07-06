@@ -7,6 +7,7 @@ import { INTEGRATION_PROVIDERS, getProviderById } from '@/lib/data-platform/regi
 import { ConnectionRepository } from '@/lib/data-platform/repository';
 import { Connection, IntegrationProvider, SyncAttempt } from '@/lib/data-platform/types';
 import { providerServices } from '@/lib/data-platform/provider-implementations';
+import { SyncProgressPanel } from './sync-progress-panel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
@@ -38,6 +39,7 @@ export function ConnectionCenter() {
   const [detailConnection, setDetailConnection] = useState<Connection | null>(null);
   const [syncLogs, setSyncLogs] = useState<SyncAttempt[]>([]);
   const [validatingId, setValidatingId] = useState<string | null>(null);
+  const [syncingProviderId, setSyncingProviderId] = useState<string | null>(null);
 
   // Form Inputs for API Key connection
   const [athleteIdInput, setAthleteIdInput] = useState('');
@@ -321,13 +323,9 @@ export function ConnectionCenter() {
     }
   };
 
-  // Manual Trigger Sync (Ingestion pipeline is deferred to Phase 4B)
+  // Manual Trigger Sync - Universal Ingestion Pipeline
   const handleTriggerSync = async (connection: Connection) => {
-    toast({
-      title: 'Ingestion Pipeline Deferred',
-      description: `Activity ingestion and mathematical analysis is deferred to Phase 4B. Your paired ${getProviderById(connection.providerId)?.name || 'data'} connection is validated and active.`,
-      type: 'info'
-    });
+    setSyncingProviderId(connection.providerId);
   };
 
   return (
@@ -454,15 +452,38 @@ export function ConnectionCenter() {
 
           <AnimatePresence mode="wait">
             {detailConnection ? (
-              <motion.div
-                key={detailConnection.id}
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                className="space-y-4"
-                id="feed-detail-panel"
-              >
-                <Card className="border-foreground/10 bg-card">
+              syncingProviderId === detailConnection.providerId ? (
+                <motion.div
+                  key="sync-progress"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-4"
+                >
+                  <SyncProgressPanel 
+                    userId={user.uid} 
+                    providerId={detailConnection.providerId} 
+                    onClose={() => setSyncingProviderId(null)} 
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSyncingProviderId(null)}
+                    className="w-full text-[10px] uppercase font-bold tracking-wider h-8 text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    ← Back to Channel Calibration
+                  </Button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={detailConnection.id}
+                  initial={{ opacity: 0, x: 15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -15 }}
+                  className="space-y-4"
+                  id="feed-detail-panel"
+                >
+                  <Card className="border-foreground/10 bg-card">
                   <CardHeader className="p-5 pb-3 flex flex-row items-center justify-between space-y-0">
                     <div>
                       <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Active Connection</span>
@@ -602,7 +623,7 @@ export function ConnectionCenter() {
                   </CardContent>
                 </Card>
               </motion.div>
-            ) : (
+            )) : (
               <motion.div
                 key="empty-detail"
                 initial={{ opacity: 0 }}

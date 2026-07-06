@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { athleteId, apiKey } = await req.json();
+    const { athleteId, apiKey, userId } = await req.json();
 
     if (!athleteId || !apiKey) {
       return NextResponse.json(
@@ -40,6 +40,16 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
+
+    // Securely save credentials on the server side if userId is provided
+    if (userId) {
+      const { IngestionRepository } = await import('@/lib/data-platform/ingestion/repository');
+      await IngestionRepository.saveSecureCredentials(userId, 'intervals-icu', {
+        athleteId: cleanId,
+        apiKey: cleanKey,
+      });
+    }
+
     return NextResponse.json({
       success: true,
       athlete: {

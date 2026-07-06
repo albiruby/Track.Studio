@@ -74,6 +74,14 @@ export async function GET(req: NextRequest) {
     // Save connection to production Firestore repository
     await ConnectionRepository.saveConnection(connection);
 
+    // Save the actual raw tokens in secure backend storage
+    const { IngestionRepository } = await import('@/lib/data-platform/ingestion/repository');
+    await IngestionRepository.saveSecureCredentials(userId, 'strava', {
+      accessToken: access_token,
+      refreshToken: refresh_token,
+      expiresAt: new Date(expires_at * 1000).toISOString(),
+    });
+
     return NextResponse.redirect(`${baseUrl}/?success=strava_connected`);
   } catch (err: any) {
     console.error('Strava OAuth callback error:', err);

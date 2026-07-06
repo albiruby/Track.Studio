@@ -99,6 +99,7 @@ export class IntervalsIcuIntegrationService implements IIntegrationProviderServi
       body: JSON.stringify({
         athleteId: authParams.athleteId,
         apiKey: authParams.apiKey,
+        userId: userId,
       }),
     });
 
