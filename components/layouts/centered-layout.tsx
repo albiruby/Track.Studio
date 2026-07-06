@@ -15,6 +15,7 @@ export function CenteredLayout({ children, className, ...props }: CenteredLayout
         'flex min-h-screen flex-col items-center justify-center p-4 bg-background text-foreground',
         className
       )}
+      id="centered-layout-container"
       {...props}
     >
       <motion.div

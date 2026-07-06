@@ -1,27 +1,35 @@
-import type {Metadata} from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
-import './globals.css'; // Global styles
+import React from 'react';
+import { Inter } from 'next/font/google';
+import { ThemeProvider } from '@/providers/theme-provider';
+import { ToastProvider } from '@/components/ui/toast';
+import { AuthProvider } from '@/lib/firebase/hooks/use-auth';
+import './globals.css';
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-});
-
-export const metadata: Metadata = {
-  title: 'Track.Studio — Running Performance Analysis',
-  description: 'Deterministic running performance analysis, data acquisition, and performance evaluation.',
+export const metadata = {
+  title: 'Track.Studio — Ingestion channels Calibration',
+  description: 'Performance & Ingestion Invariants Calibration Console',
 };
 
-export default function RootLayout({children}: {children: React.ReactNode}) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body suppressHydrationWarning className="bg-slate-50 text-slate-900 antialiased min-h-screen font-sans">
-        {children}
+    <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
+      <body className="font-sans antialiased h-full">
+        <ThemeProvider>
+          <ToastProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
  */
 export function LoadingState({ message = 'Acquiring performance telemetry...' }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 text-center min-h-[300px]">
+    <div className="flex flex-col items-center justify-center py-12 px-4 text-center min-h-[300px]" id="loading-state-container">
       <Spinner size="lg" className="mb-4" />
       <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest animate-pulse">
         {message}
@@ -45,14 +45,14 @@ export function EmptyState({
   icon?: React.ElementType;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center p-8 rounded-lg border border-border border-dashed bg-card/40 text-center min-h-[250px]">
+    <div className="flex flex-col items-center justify-center p-8 rounded-lg border border-border border-dashed bg-card/40 text-center min-h-[250px]" id="empty-state-container">
       <div className="rounded-full bg-secondary/60 p-3 mb-4">
         <Icon className="h-6 w-6 text-muted-foreground" />
       </div>
       <h3 className="text-sm font-semibold tracking-tight text-foreground mb-1">{title}</h3>
       <p className="text-xs text-muted-foreground max-w-sm mb-5 leading-normal">{description}</p>
       {actionLabel && onAction && (
-        <Button variant="outline" size="sm" onClick={onAction}>
+        <Button variant="outline" size="sm" onClick={onAction} id="empty-state-action">
           {actionLabel}
         </Button>
       )}
@@ -73,13 +73,13 @@ export function OfflineState({ onRetry }: { onRetry?: () => void }) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center bg-status-danger/5 border border-status-danger/20 rounded-lg min-h-[200px]">
+    <div className="flex flex-col items-center justify-center p-8 text-center bg-status-danger/5 border border-status-danger/20 rounded-lg min-h-[200px]" id="offline-state-container">
       <WifiOff className="h-8 w-8 text-status-danger mb-3" />
       <h3 className="text-sm font-semibold text-foreground mb-1">Network Connectivity Disrupted</h3>
       <p className="text-xs text-muted-foreground max-w-xs mb-4">
         Track.Studio is operating on offline fallback data. Reconnect to resume live cloud-platform synchronization.
       </p>
-      <Button variant="outline" size="sm" className="border-status-danger/30 text-status-danger hover:bg-status-danger/10" onClick={handleReload}>
+      <Button variant="outline" size="sm" className="border-status-danger/30 text-status-danger hover:bg-status-danger/10" onClick={handleReload} id="offline-retry-button">
         <RefreshCw className="mr-2 h-3.5 w-3.5" />
         Retry Connection
       </Button>
@@ -92,7 +92,7 @@ export function OfflineState({ onRetry }: { onRetry?: () => void }) {
  */
 export function SyncingState({ label = 'Syncing activity queue...' }: { label?: string }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-xs select-none shadow-sm">
+    <div className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-xs select-none shadow-sm" id="syncing-state-indicator">
       <span className="relative flex h-2 w-2">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-info opacity-75"></span>
         <span className="relative inline-flex rounded-full h-2 w-2 bg-status-info"></span>
@@ -119,7 +119,7 @@ export function ErrorState({
   onReset?: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center p-8 rounded-lg border border-status-danger/30 bg-status-danger/5 text-center min-h-[250px]">
+    <div className="flex flex-col items-center justify-center p-8 rounded-lg border border-status-danger/30 bg-status-danger/5 text-center min-h-[250px]" id="error-state-container">
       <div className="rounded-full bg-status-danger/10 p-3 mb-4">
         <AlertTriangle className="h-6 w-6 text-status-danger" />
       </div>
@@ -133,7 +133,7 @@ export function ErrorState({
       )}
 
       {onReset && (
-        <Button variant="outline" size="sm" onClick={onReset}>
+        <Button variant="outline" size="sm" onClick={onReset} id="error-reset-button">
           Reset Engine
         </Button>
       )}
@@ -146,7 +146,7 @@ export function ErrorState({
  */
 export function MaintenanceState() {
   return (
-    <div className="flex flex-col items-center justify-center p-12 text-center max-w-md mx-auto">
+    <div className="flex flex-col items-center justify-center p-12 text-center max-w-md mx-auto" id="maintenance-state-container">
       <Settings className="h-10 w-10 text-muted-foreground mb-4 animate-spin-slow" />
       <h3 className="text-base font-semibold text-foreground mb-2">Computational Updates Ongoing</h3>
       <p className="text-xs text-muted-foreground leading-relaxed mb-6">
@@ -170,7 +170,7 @@ export function NoDataState({
   description?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-10 px-4 text-center border border-border border-dashed rounded-lg bg-card/25">
+    <div className="flex flex-col items-center justify-center py-10 px-4 text-center border border-border border-dashed rounded-lg bg-card/25" id="nodata-state-container">
       <Database className="h-7 w-7 text-muted-foreground/60 mb-3" />
       <h4 className="text-xs font-semibold text-foreground mb-0.5">{title}</h4>
       <p className="text-[11px] text-muted-foreground max-w-xs">{description}</p>

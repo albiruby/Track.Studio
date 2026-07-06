@@ -25,7 +25,7 @@ export function SettingsLayout({
   description = 'Manage physical thresholds, system access, and sync integrations.',
 }: SettingsLayoutProps) {
   return (
-    <div className="space-y-6 max-w-6xl mx-auto py-4 px-4 sm:px-6">
+    <div className="space-y-6 max-w-6xl mx-auto py-4 px-4 sm:px-6" id="settings-layout-container">
       <div className="border-b border-border pb-5">
         <h2 className="text-xl font-bold tracking-tight text-foreground">{title}</h2>
         <p className="text-xs text-muted-foreground mt-1">{description}</p>
@@ -34,7 +34,7 @@ export function SettingsLayout({
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar Nav */}
         <aside className="lg:w-1/5 shrink-0">
-          <nav className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-visible border-b lg:border-b-0 border-border pb-2 lg:pb-0 gap-1 select-none">
+          <nav className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-visible border-b lg:border-b-0 border-border pb-2 lg:pb-0 gap-1 select-none" id="settings-sidebar-nav">
             {sidebarNav.map((item) => {
               const Icon = item.icon;
               const isActive = activeValue === item.value;
@@ -49,6 +49,7 @@ export function SettingsLayout({
                       ? 'bg-secondary text-foreground font-semibold'
                       : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
                   )}
+                  id={`settings-nav-item-${item.value}`}
                 >
                   {Icon && <Icon className="h-4 w-4 shrink-0" />}
                   {item.label}
@@ -60,7 +61,7 @@ export function SettingsLayout({
 
         {/* Content Pane */}
         <main className="flex-1 min-w-0">
-          <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+          <div className="rounded-lg border border-border bg-card p-6 shadow-sm" id="settings-content-panel">
             {children}
           </div>
         </main>
