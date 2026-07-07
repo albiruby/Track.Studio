@@ -1,4 +1,4 @@
-import { CanonicalActivity } from '@/lib/data-platform/canonical/types';
+import { CanonicalActivity, CanonicalAthlete } from '@/lib/data-platform/canonical/types';
 import { calculateCV, calculateStandardDeviation, parseToTimestamp } from './utils';
 
 export const FORMULA_VERSION = '1.0.0';

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { ToastProvider } from '@/components/ui/toast';
 import { AuthProvider } from '@/lib/firebase/hooks/use-auth';
+import { WorkspaceProvider } from '@/providers/workspace-provider';
 import './globals.css';
 
 const inter = Inter({
@@ -11,8 +12,8 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'Track.Studio — Ingestion channels Calibration',
-  description: 'Performance & Ingestion Invariants Calibration Console',
+  title: 'Track.Studio — Performance Ingestion Shell',
+  description: 'Running Performance Analysis Platform Ingestion Console',
 };
 
 export default function RootLayout({
@@ -26,7 +27,9 @@ export default function RootLayout({
         <ThemeProvider>
           <ToastProvider>
             <AuthProvider>
-              {children}
+              <WorkspaceProvider>
+                {children}
+              </WorkspaceProvider>
             </AuthProvider>
           </ToastProvider>
         </ThemeProvider>

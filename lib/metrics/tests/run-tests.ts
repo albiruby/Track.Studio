@@ -308,6 +308,7 @@ function runStreamBasedTests(): void {
     altitudeMeters: null,
     velocityMps,
     heartRateBpm,
+    cadenceRpm: null,
     powerWatts,
     temperatureC: null,
     moving: null,

@@ -20,7 +20,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, activeTab = 'connections', setActiveTab }: DashboardLayoutProps) {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth() as any;
   const { setTheme, resolvedTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 

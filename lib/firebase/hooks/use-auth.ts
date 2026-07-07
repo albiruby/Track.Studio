@@ -1,6 +1,10 @@
+'use client';
+
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirebase } from '@/providers/firebase-provider';
+import { useFirebase, FirebaseProvider } from '@/providers/firebase-provider';
+
+export { FirebaseProvider as AuthProvider };
 
 /**
  * Enhanced hook exposing Auth, Session, and Client-side Guards
