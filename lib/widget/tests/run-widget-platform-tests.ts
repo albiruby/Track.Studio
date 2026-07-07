@@ -121,7 +121,7 @@ try {
     'Hidden'
   ];
 
-  let activeState: WidgetState = 'Loading';
+  let activeState: any = 'Loading';
   const transitionHistory: WidgetState[] = [activeState];
 
   const transitionTo = (nextState: WidgetState) => {

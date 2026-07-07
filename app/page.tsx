@@ -37,6 +37,7 @@ import {
 import { DashboardProvider, useDashboard } from '@/providers/dashboard-provider';
 import { DashboardPageRenderer } from '@/components/dashboard/dashboard-page-renderer';
 import { DASHBOARD_REGISTRY } from '@/lib/dashboard/registry';
+import { CompositionProvider } from '@/components/dashboard/composition/composition-context';
 
 export default function Page() {
   const { user, loginWithGoogle } = useAuth() as any;
@@ -272,13 +273,15 @@ export default function Page() {
   // =========================================================
   return (
     <DashboardProvider>
-      <WorkspaceDashboardView 
-        activeAthlete={activeAthlete}
-        activeLayoutView={activeLayoutView}
-        setActiveLayoutView={setActiveLayoutView}
-        triggerSync={triggerSync}
-        isCompactMode={isCompactMode}
-      />
+      <CompositionProvider>
+        <WorkspaceDashboardView 
+          activeAthlete={activeAthlete}
+          activeLayoutView={activeLayoutView}
+          setActiveLayoutView={setActiveLayoutView}
+          triggerSync={triggerSync}
+          isCompactMode={isCompactMode}
+        />
+      </CompositionProvider>
     </DashboardProvider>
   );
 }
