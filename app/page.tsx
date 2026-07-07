@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/firebase/hooks/use-auth';
 import { useWorkspace } from '@/providers/workspace-provider';
 import { WorkspaceLayout } from '@/components/layouts/workspace-layout';
@@ -32,6 +32,11 @@ import {
   ChevronRight,
   Eye
 } from 'lucide-react';
+
+// Phase 11 Dashboard Platform Integrations
+import { DashboardProvider, useDashboard } from '@/providers/dashboard-provider';
+import { DashboardPageRenderer } from '@/components/dashboard/dashboard-page-renderer';
+import { DASHBOARD_REGISTRY } from '@/lib/dashboard/registry';
 
 export default function Page() {
   const { user, loginWithGoogle } = useAuth() as any;
@@ -100,7 +105,7 @@ export default function Page() {
             className="w-full h-9 uppercase"
             onClick={() => setActiveLayoutView('standard')}
           >
-            Bypass handshakes
+            Bypass & Launch Workspace
           </Button>
         </div>
       </AuthenticationLayout>
@@ -108,58 +113,27 @@ export default function Page() {
   }
 
   // =========================================================
-  // 2. FULLSCREEN VIEWPORT LAYOUT PREVIEW
+  // 2. FULLSCREEN CANVAS PREVIEW
   // =========================================================
   if (activeLayoutView === 'fullscreen') {
     return (
-      <FullscreenLayout
-        title="Wide Ingestion Stream inspect map"
+      <FullscreenLayout 
         onClose={() => setActiveLayoutView('standard')}
-        toolbar={
-          <Button variant="outline" size="sm" className="h-8 uppercase" onClick={() => setActiveLayoutView('standard')}>
-            Close fullscreen
-          </Button>
-        }
+        title="IMMERSIVE SPANNER TELEMETRY MATRIX"
       >
-        <div className="h-full w-full flex flex-col md:flex-row relative bg-black/5 dark:bg-black/25">
-          {/* Left inspection statistics */}
-          <div className="w-full md:w-80 shrink-0 border-r border-border bg-card p-6 flex flex-col justify-between select-none">
-            <div className="space-y-4">
-              <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Inspection panel</span>
-              <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">AEROBIC COUPLING CURVE</h2>
-              <p className="text-xs text-muted-foreground leading-normal font-medium">
-                Inspecting real-time cardiac decoupling trends across 15 historical runs. Drag nodes to highlight specific training fatigue metrics.
+        <div className="space-y-6 h-full flex flex-col justify-between">
+          <div className="space-y-2">
+            <div className="p-4 bg-muted/30 border border-border rounded-lg max-w-xl">
+              <span className="text-[10px] font-mono font-bold bg-secondary px-1.5 py-0.5 rounded text-muted-foreground uppercase">WORKSPACE ENVIRONMENT CAP</span>
+              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                A pristine, minimal full-canvas environment suited for complex interactive canvas renderers, maps integrations, or high-fidelity performance metrics.
               </p>
-              
-              <div className="space-y-2 font-mono text-[11px] pt-4 border-t border-border/60">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">CTL Load:</span>
-                  <span className="font-bold">64.5 TSS/day</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">ATL Fatigue:</span>
-                  <span className="font-bold">81.2 TSS/day</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">TSB Balance:</span>
-                  <span className="font-bold text-status-warning">-16.7 (Fatigued)</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-[10px] text-muted-foreground font-mono">
-              Press ESC or Close button to return
             </div>
           </div>
-
-          {/* Right Main visual charts container */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-6">
-            <div className="flex items-center gap-2">
-              <Activity className="h-4.5 w-4.5 text-foreground animate-pulse" />
-              <h3 className="text-xs font-bold uppercase tracking-widest">Active telemetry stream</h3>
-            </div>
-            
-            <ChartPlaceholder heightClass="h-[360px]" />
+          
+          <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground select-none">
+            <span>COMPREHENSIVE RUN SYSTEM: ACTIVE</span>
+            <span>PRESS ESCAPE OR CLICK UPPER RIGHT TO DISMISS</span>
           </div>
         </div>
       </FullscreenLayout>
@@ -167,33 +141,26 @@ export default function Page() {
   }
 
   // =========================================================
-  // 3. ERROR DIAGNOSTIC STATE LAYOUT PREVIEW
+  // 3. ERROR DIAGNOSTICS PREVIEW (500)
   // =========================================================
   if (activeLayoutView === 'error') {
     return (
-      <ErrorLayout
-        errorCode="500_TELEMETRY_PIPELINE_TIMEOUT"
-        title="Ingestion Handshake Rejected"
-        description="The analytics data platform failed to verify the authenticity of the local Firestore session signature. Calibration required."
-        diagnostics={`Error: INTERNAL_HANDSHAKE_REJECTED (code 500)
-at IngestionPipeline.verifySession (src/lib/data-platform/pipeline.ts:145:12)
-at async ConnectionCenter.loadConnections (src/components/dashboard/connection-center.tsx:50:31)
-at InvariantRegistry.checkFidelity (src/lib/data-platform/registry.ts:89:15)
--- End of Pipeline Handshake Diagnostics Stack Trace --`}
+      <ErrorLayout 
+        errorCode="500"
+        title="FIRESTORE PERSISTENCE DEADLOCK"
+        description="The workspace write transaction timed out waiting for local sync locks. Internal ingestion buffers are currently offline."
         onRetry={() => setActiveLayoutView('standard')}
-        homePath="#"
       />
     );
   }
 
   // =========================================================
-  // 4. MAINTENANCE LAYOUT PREVIEW
+  // 4. MAINTENANCE LOCK SCREEN PREVIEW
   // =========================================================
   if (activeLayoutView === 'maintenance') {
     return (
       <MaintenanceLayout 
-        estimatedTimeLeft="30 minutes"
-        maintenanceReason="Recalibrating high-density database collections and deploying updated security rules for Google Cloud Run container optimization."
+        estimatedTimeLeft="2 Hours"
       />
     );
   }
@@ -303,8 +270,58 @@ at InvariantRegistry.checkFidelity (src/lib/data-platform/registry.ts:89:15)
   // =========================================================
   // 8. STANDARD CORE VIEW (Unified Workspace Layout)
   // =========================================================
-  
-  // Custom toolbar widget (Layout selector dropdown for live testing)
+  return (
+    <DashboardProvider>
+      <WorkspaceDashboardView 
+        activeAthlete={activeAthlete}
+        activeLayoutView={activeLayoutView}
+        setActiveLayoutView={setActiveLayoutView}
+        triggerSync={triggerSync}
+        isCompactMode={isCompactMode}
+      />
+    </DashboardProvider>
+  );
+}
+
+/**
+ * Subcomponent to safely consume DashboardProvider state contexts inside Page
+ */
+function WorkspaceDashboardView({
+  activeAthlete,
+  activeLayoutView,
+  setActiveLayoutView,
+  triggerSync,
+  isCompactMode
+}: {
+  activeAthlete: any;
+  activeLayoutView: string;
+  setActiveLayoutView: (v: any) => void;
+  triggerSync: () => void;
+  isCompactMode: boolean;
+}) {
+  const { 
+    activeDashboardId, 
+    setActiveDashboardId, 
+    activeDashboard,
+    dashboardState
+  } = useDashboard();
+
+  // Route awareness backplane syncing URL changes with Dashboard Context
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && DASHBOARD_REGISTRY[hash]) {
+        setActiveDashboardId(hash);
+      }
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange(); // Run on mount
+    
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [setActiveDashboardId]);
+
+  // Layout Selector Dropdown Toolbar
   const layoutSelectorToolbar = (
     <div className="flex items-center gap-1.5 border border-border bg-card rounded-md p-1" id="layout-preview-selector-harness">
       <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 text-muted-foreground hidden lg:inline">Layout previewer:</span>
@@ -326,10 +343,9 @@ at InvariantRegistry.checkFidelity (src/lib/data-platform/registry.ts:89:15)
     </div>
   );
 
-  // Active core content is ConnectionCenter
-  const contentBody = (
+  // ConnectionCenter view body (original Standard Shell design)
+  const connectionCenterBody = (
     <div className="space-y-6">
-      
       {/* High-density bento stats at the top of the standard view to make it look professional */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 select-none" id="high-density-bento-indicators">
         
@@ -400,6 +416,9 @@ at InvariantRegistry.checkFidelity (src/lib/data-platform/registry.ts:89:15)
     </div>
   );
 
+  // Pick between original connections panel or modular dashboard renderer
+  const contentBody = activeDashboardId === 'connections' ? connectionCenterBody : <DashboardPageRenderer />;
+
   // Side Panel Widget showing quick stats logs
   const sidebarInspectorWidget = (
     <div className="space-y-4 text-xs leading-normal select-none" id="workspace-sidebar-inspect-widget">
@@ -408,7 +427,8 @@ at InvariantRegistry.checkFidelity (src/lib/data-platform/registry.ts:89:15)
         <div>• Active Client Port: <b>3000</b></div>
         <div>• Ingestion Handshake: <b>Google Firebase</b></div>
         <div>• Persistence Store: <b>Cloud Firestore</b></div>
-        <div>• Buffer Queue size: <b>0 items</b></div>
+        <div>• Active Workspace: <b className="text-foreground uppercase">{activeDashboardId}</b></div>
+        <div>• Render Mode: <b className="text-foreground uppercase">{dashboardState}</b></div>
       </div>
       
       <p className="text-muted-foreground font-medium">
@@ -417,11 +437,17 @@ at InvariantRegistry.checkFidelity (src/lib/data-platform/registry.ts:89:15)
     </div>
   );
 
+  // Dynamically compute layout Titles
+  const workspaceTitle = activeDashboardId === 'connections' ? 'Ingestion Center' : activeDashboard.name;
+  const workspaceSubtitle = activeDashboardId === 'connections' 
+    ? 'Configure external ingestion endpoints, handshakes, and token registries' 
+    : activeDashboard.documentation;
+
   return (
     <WorkspaceLayout
-      title="Ingestion Center"
-      subtitle="Configure external ingestion endpoints, handshakes, and token registries"
-      activeRouteId="connections"
+      title={workspaceTitle}
+      subtitle={workspaceSubtitle}
+      activeRouteId={activeDashboardId}
       toolbar={layoutSelectorToolbar}
       contentSlot={contentBody}
       sidePanelSlot={sidebarInspectorWidget}

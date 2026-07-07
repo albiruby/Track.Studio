@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/providers/theme-provider';
 import { ToastProvider } from '@/components/ui/toast';
 import { AuthProvider } from '@/lib/firebase/hooks/use-auth';
 import { WorkspaceProvider } from '@/providers/workspace-provider';
+import { WidgetProvider } from '@/components/widget/widget-context';
 import './globals.css';
 
 const inter = Inter({
@@ -28,7 +29,9 @@ export default function RootLayout({
           <ToastProvider>
             <AuthProvider>
               <WorkspaceProvider>
-                {children}
+                <WidgetProvider>
+                  {children}
+                </WidgetProvider>
               </WorkspaceProvider>
             </AuthProvider>
           </ToastProvider>
