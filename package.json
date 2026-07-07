@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint",
-    "test": "npx tsx ./lib/dashboard/tests/run-dashboard-tests.ts && npx tsx ./lib/widget/tests/run-widget-platform-tests.ts && npx tsx ./lib/dashboard/composition/tests/run-composition-tests.ts"
+    "test": "npx tsx ./lib/dashboard/tests/run-dashboard-tests.ts && npx tsx ./lib/widget/tests/run-widget-platform-tests.ts && npx tsx ./lib/dashboard/composition/tests/run-composition-tests.ts && npx tsx ./lib/visualization/tests/run-visualization-tests.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",
