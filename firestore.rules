@@ -54,15 +54,15 @@ service cloud.firestore {
 
     // Athlete Profile Schema Validator
     function isValidAthleteProfile(data) {
-      return data.keys().hasAll(['id', 'email', 'emailVerified', 'isAnonymous', 'lastLoginAt', 'createdAt', 'updatedAt'])
+      return data.keys().hasAll(['id', 'lastLoginAt', 'createdAt', 'updatedAt'])
         && data.id is string
         && data.id == request.auth.uid
-        && (data.email == null || (data.email is string && data.email.size() <= 256))
-        && (data.displayName == null || (data.displayName is string && data.displayName.size() <= 256))
-        && (data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1024))
-        && data.emailVerified is bool
-        && data.isAnonymous is bool
-        && (data.phoneNumber == null || (data.phoneNumber is string && data.phoneNumber.size() <= 32))
+        && (!data.keys().hasAny(['email']) || data.email == null || (data.email is string && data.email.size() <= 256))
+        && (!data.keys().hasAny(['displayName']) || data.displayName == null || (data.displayName is string && data.displayName.size() <= 256))
+        && (!data.keys().hasAny(['photoURL']) || data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1024))
+        && (!data.keys().hasAny(['emailVerified']) || data.emailVerified is bool)
+        && (!data.keys().hasAny(['isAnonymous']) || data.isAnonymous is bool)
+        && (!data.keys().hasAny(['phoneNumber']) || data.phoneNumber == null || (data.phoneNumber is string && data.phoneNumber.size() <= 32))
         && data.lastLoginAt is string
         && data.createdAt is string
         && data.updatedAt is string
