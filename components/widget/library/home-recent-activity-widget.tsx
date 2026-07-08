@@ -14,7 +14,7 @@ export function HomeRecentActivityWidget({ widgetId, viewModel }: WidgetRenderPr
   if (!viewModel) {
     return (
       <div className="p-6 text-center text-xs text-muted-foreground font-mono uppercase">
-        No recent activity webhook ingested.
+        No recent activity synchronized.
       </div>
     );
   }
@@ -22,10 +22,10 @@ export function HomeRecentActivityWidget({ widgetId, viewModel }: WidgetRenderPr
   const validation = WidgetValidation.validateRecentActivity(viewModel);
   if (!validation.isValid) {
     return (
-      <div className="p-5 border border-status-danger/35 bg-status-danger/5 text-status-danger rounded-lg flex items-start gap-3 select-none">
+      <div className="p-5 border border-status-danger/35 bg-status-danger/5 text-status-danger rounded-xl flex items-start gap-3 select-none">
         <ShieldAlert className="h-5 w-5 shrink-0" />
-        <div className="text-xs font-mono leading-relaxed">
-          <span className="font-bold uppercase block mb-1">CONTRACT VALIDATION ERROR:</span>
+        <div className="text-xs leading-relaxed">
+          <span className="font-bold uppercase block mb-1">Data Stream Error:</span>
           {validation.error}
         </div>
       </div>
@@ -65,8 +65,8 @@ export function HomeRecentActivityWidget({ widgetId, viewModel }: WidgetRenderPr
       <div>
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <span className="text-[9px] font-mono font-bold bg-secondary py-0.5 px-1.5 rounded text-muted-foreground uppercase">
-              Recent webhook payload
+            <span className="text-[9px] font-mono font-bold bg-primary/10 text-primary py-0.5 px-1.5 rounded uppercase">
+              Latest Workout Analysis
             </span>
             <h4 className="text-sm font-bold text-foreground mt-1.5 truncate uppercase tracking-tight">
               {title}

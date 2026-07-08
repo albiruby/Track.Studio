@@ -22,10 +22,10 @@ export function HomePerformanceMetricsWidget({ widgetId, viewModel }: WidgetRend
   const validation = WidgetValidation.validatePerformanceMetrics(viewModel);
   if (!validation.isValid) {
     return (
-      <div className="p-5 border border-status-danger/35 bg-status-danger/5 text-status-danger rounded-lg flex items-start gap-3 select-none">
+      <div className="p-5 border border-status-danger/35 bg-status-danger/5 text-status-danger rounded-xl flex items-start gap-3 select-none">
         <ShieldAlert className="h-5 w-5 shrink-0" />
-        <div className="text-xs font-mono leading-relaxed">
-          <span className="font-bold uppercase block mb-1">CONTRACT VALIDATION ERROR:</span>
+        <div className="text-xs leading-relaxed">
+          <span className="font-bold uppercase block mb-1">Data Stream Error:</span>
           {validation.error}
         </div>
       </div>
@@ -62,11 +62,11 @@ export function HomePerformanceMetricsWidget({ widgetId, viewModel }: WidgetRend
     <div className="p-4 sm:p-5 h-full flex flex-col justify-between select-none" id="widget-performance-matrix">
       <div>
         <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold bg-secondary py-0.5 px-1.5 rounded text-muted-foreground uppercase">
-            Banister Adaptation Model
+          <span className="text-[9px] font-mono font-bold bg-primary/10 text-primary py-0.5 px-1.5 rounded uppercase">
+            Physiological Load Model
           </span>
           <span className="text-[9px] font-mono font-bold text-muted-foreground">
-            CTL COUPLING DECAY: EXPONENTIAL
+            METRIC ENGINE COUPLING
           </span>
         </div>
 

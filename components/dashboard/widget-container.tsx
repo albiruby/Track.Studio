@@ -8,13 +8,11 @@ import {
   RefreshCw, 
   AlertTriangle, 
   Inbox, 
-  HelpCircle, 
   Maximize2, 
   Minimize2,
-  Settings2,
   EyeOff,
   MoreVertical,
-  Check
+  Heart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -47,27 +45,16 @@ export function WidgetContainer({
   onRefresh,
   className,
 }: WidgetContainerProps) {
-  const { preferences, updateWidgetVisibility, dashboardState } = useDashboard();
+  const { updateWidgetVisibility, dashboardState } = useDashboard();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
 
-  // Determine local density padding
-  const density = preferences.layoutDensity;
-  const paddingClass = 
-    density === 'compact' ? 'p-3' : 
-    density === 'spacious' ? 'p-6' : 
-    'p-5';
-
-  const headerPaddingClass = 
-    density === 'compact' ? 'px-3 pt-3 pb-1' : 
-    density === 'spacious' ? 'px-6 pt-6 pb-2' : 
-    'px-5 pt-5 pb-1.5';
-
-  const footerPaddingClass = 
-    density === 'compact' ? 'px-3 pb-3 pt-1' : 
-    density === 'spacious' ? 'px-6 pb-6 pt-2' : 
-    'px-5 pb-5 pt-1.5';
+  // Clean, consistent layout spacing (Bauhaus specs: 16px padding, 12px inner)
+  const paddingClass = 'p-4';
+  const headerPaddingClass = 'px-4 pt-4 pb-2';
+  const footerPaddingClass = 'px-4 pb-4 pt-2';
 
   const handleLocalRefresh = async () => {
     if (onRefresh) {
@@ -88,7 +75,6 @@ export function WidgetContainer({
     }
   };
 
-  // Determine actual state
   const isGlobalLoading = dashboardState === 'Loading';
   const isGlobalOffline = dashboardState === 'Offline';
   const isWidgetLoading = loading || isGlobalLoading;
@@ -102,8 +88,8 @@ export function WidgetContainer({
       role="region"
       aria-labelledby={`widget-title-${id}`}
       className={cn(
-        'relative bg-card border border-border/80 text-foreground transition-all flex flex-col focus-within:ring-1 focus-within:ring-ring/45 outline-none select-none overflow-hidden h-full',
-        isFullscreen ? 'fixed inset-0 z-50 h-screen w-screen bg-background p-6' : 'hover:shadow-sm',
+        'relative bg-[#121722] border border-[#232A36] text-foreground transition-all duration-300 flex flex-col focus-within:ring-1 focus-within:ring-primary/45 outline-none select-none overflow-hidden h-full rounded-[18px] hover:border-[#323b4b] hover:shadow-lg hover:-translate-y-0.5',
+        isFullscreen ? 'fixed inset-0 z-50 h-screen w-screen bg-[#0F1117] p-6' : '',
         className
       )}
     >
@@ -113,45 +99,69 @@ export function WidgetContainer({
           <div className="flex flex-col min-w-0">
             <CardTitle 
               id={`widget-title-${id}`}
-              className={cn(
-                'font-bold tracking-tight text-foreground uppercase truncate',
-                density === 'compact' ? 'text-[11px]' : 'text-xs'
-              )}
+              className="text-sm font-semibold tracking-tight text-foreground uppercase truncate"
             >
               {title}
             </CardTitle>
             {subtitle && (
-              <p className={cn('text-muted-foreground font-medium leading-none truncate mt-0.5', density === 'compact' ? 'text-[9px]' : 'text-[10px]')}>
+              <p className="text-muted-foreground font-medium leading-none truncate mt-1 text-[11px]">
                 {subtitle}
               </p>
             )}
           </div>
 
           {/* Widget Toolbar / Operations Panel */}
-          <div className="flex items-center gap-1.5 shrink-0 select-none">
-            {toolbar && <div className="flex items-center gap-1">{toolbar}</div>}
+          <div className="flex items-center gap-1 shrink-0 select-none">
+            {toolbar && <div className="flex items-center gap-1 mr-1">{toolbar}</div>}
             
+            {/* Interactive favorite heart button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsFavorited(!isFavorited)}
+              className={cn(
+                "h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-colors",
+                isFavorited && "text-[#FF6B00] hover:text-[#FF6B00]"
+              )}
+              title="Favorite widget"
+            >
+              <Heart className={cn("h-3.5 w-3.5", isFavorited && "fill-current")} />
+            </Button>
+
             {onRefresh && !isWidgetLoading && !error && !isEmpty && (
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleLocalRefresh}
-                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/40"
                 aria-label={`Refresh data for ${title}`}
+                title="Refresh"
               >
                 <RefreshCw className={cn('h-3.5 w-3.5', isWidgetRefreshing && 'animate-spin text-status-success')} />
               </Button>
             )}
 
-            {/* Config & More Actions Dropdown */}
+            {/* Expand / minimize icon */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+              title="Toggle Fullscreen"
+            >
+              {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+            </Button>
+
+            {/* More Actions Dropdown */}
             <div className="relative">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/40"
                 aria-label={`Settings for ${title}`}
                 id={`widget-menu-trigger-${id}`}
+                title="More options"
               >
                 <MoreVertical className="h-3.5 w-3.5" />
               </Button>
@@ -160,42 +170,19 @@ export function WidgetContainer({
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
                   <div 
-                    className="absolute right-0 mt-1 w-44 rounded-md border border-border bg-card shadow-lg z-20 p-1 text-xs"
+                    className="absolute right-0 mt-1 w-44 rounded-xl border border-border bg-[#121722]/95 backdrop-blur-md shadow-xl z-20 p-1 text-xs"
                     id={`widget-menu-${id}`}
                   >
-                    <button
-                      onClick={() => {
-                        setIsFullscreen(!isFullscreen);
-                        setMenuOpen(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded hover:bg-secondary/40 text-muted-foreground hover:text-foreground text-left"
-                    >
-                      {isFullscreen ? (
-                        <>
-                          <Minimize2 className="h-3 w-3" />
-                          <span>Exit Fullscreen</span>
-                        </>
-                      ) : (
-                        <>
-                          <Maximize2 className="h-3 w-3" />
-                          <span>Fullscreen Mode</span>
-                        </>
-                      )}
-                    </button>
                     <button
                       onClick={() => {
                         updateWidgetVisibility(id, false);
                         setMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded hover:bg-status-danger/15 text-muted-foreground hover:text-status-danger text-left font-medium"
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-status-danger/10 text-muted-foreground hover:text-status-danger text-left font-medium transition-colors"
                     >
                       <EyeOff className="h-3 w-3" />
                       <span>Hide Widget</span>
                     </button>
-                    <div className="h-px bg-border my-1" />
-                    <div className="px-2.5 py-1 text-[9px] font-mono text-muted-foreground uppercase font-bold">
-                      WIDGET ID: {id}
-                    </div>
                   </div>
                 </>
               )}
@@ -204,28 +191,28 @@ export function WidgetContainer({
         </div>
       </CardHeader>
 
-      {/* Main Content Slot / Template Conditionals */}
+      {/* Main Content Slot */}
       <CardContent className={cn('flex-1 flex flex-col justify-center min-h-[140px]', paddingClass)}>
         {isWidgetLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center space-y-3.5 py-6" id={`widget-loading-${id}`}>
             <RefreshCw className="h-7 w-7 animate-spin text-muted-foreground/60" />
-            <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider">Compiling View Model...</span>
+            <span className="text-[10px] font-mono font-medium text-muted-foreground uppercase tracking-wider">Syncing Stream...</span>
           </div>
         ) : error ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-4 space-y-2.5 bg-status-danger/5 rounded border border-status-danger/10" id={`widget-error-${id}`}>
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-4 space-y-2.5 bg-status-danger/5 rounded-xl border border-status-danger/10" id={`widget-error-${id}`}>
             <AlertTriangle className="h-6 w-6 text-status-danger" />
             <div>
-              <p className="text-xs font-bold text-foreground uppercase tracking-wide">Data pipeline broken</p>
-              <p className="text-[10px] text-muted-foreground font-mono mt-0.5 leading-relaxed max-w-[240px] mx-auto">{error}</p>
+              <p className="text-xs font-semibold text-foreground uppercase tracking-wide">Sync Stream Error</p>
+              <p className="text-[10px] text-muted-foreground mt-1 max-w-[240px] mx-auto">{error}</p>
             </div>
           </div>
         ) : isEmpty ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-4 space-y-2.5" id={`widget-empty-${id}`}>
             <Inbox className="h-6 w-6 text-muted-foreground/45" />
             <div>
-              <p className="text-xs font-bold text-foreground uppercase tracking-wide">No activities on file</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5 max-w-[240px] leading-relaxed mx-auto">
-                No telemetry packet ingested for the requested physiological bounds. Connect Strava or upload a FIT stream.
+              <p className="text-xs font-semibold text-foreground uppercase tracking-wide">No activities synced yet</p>
+              <p className="text-[10px] text-muted-foreground mt-1 max-w-[240px] leading-relaxed mx-auto">
+                Connect Strava in Connections to begin.
               </p>
             </div>
           </div>
@@ -233,16 +220,16 @@ export function WidgetContainer({
           <div className="flex-1 flex flex-col items-center justify-center text-center p-4 space-y-2.5" id={`widget-offline-${id}`}>
             <AlertTriangle className="h-6 w-6 text-muted-foreground/60" />
             <div>
-              <p className="text-xs font-bold text-foreground uppercase tracking-wide">Workspace Caching Active</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5 max-w-[240px] leading-relaxed mx-auto">
-                Local transient browser cache active. Live sync disabled until secure gateway connectivity is restored.
+              <p className="text-xs font-semibold text-foreground uppercase tracking-wide">Offline mode active</p>
+              <p className="text-[10px] text-muted-foreground mt-1 max-w-[240px] leading-relaxed mx-auto">
+                No active internet connection found. Working with cached records.
               </p>
             </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col h-full w-full relative">
             {isWidgetRefreshing && (
-              <div className="absolute top-1.5 right-1.5 flex items-center gap-1 text-[9px] font-mono text-status-success font-semibold px-1.5 py-0.5 rounded bg-status-success/10 border border-status-success/20">
+              <div className="absolute top-1.5 right-1.5 flex items-center gap-1 text-[9px] font-mono text-status-success font-semibold px-1.5 py-0.5 rounded-lg bg-status-success/10 border border-status-success/20">
                 <RefreshCw className="h-2.5 w-2.5 animate-spin" />
                 <span>Syncing</span>
               </div>
@@ -253,13 +240,9 @@ export function WidgetContainer({
       </CardContent>
 
       {/* Footer slot */}
-      {(footer || timestamp) && (
-        <CardFooter className={cn('border-t border-border/40 flex items-center justify-between text-[10px] font-mono text-muted-foreground shrink-0 select-none bg-muted/15', footerPaddingClass)}>
-          {timestamp ? (
-            <span className="truncate">Trace: {timestamp}</span>
-          ) : (
-            <div />
-          )}
+      {footer && (
+        <CardFooter className={cn('border-t border-border/40 flex items-center justify-between text-[10px] text-muted-foreground shrink-0 select-none bg-muted/5', footerPaddingClass)}>
+          <div />
           {footer && <div className="shrink-0">{footer}</div>}
         </CardFooter>
       )}

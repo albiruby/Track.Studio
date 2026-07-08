@@ -161,26 +161,6 @@ export function DashboardPageRenderer() {
               className={`relative ${getColSpanClass(w.size, cols)} transition-all duration-200 group`}
               id={`composed-grid-cell-${w.id}`}
             >
-              {/* Dynamic size switcher overlay on hover */}
-              <div className="absolute top-3 left-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 bg-background/95 border border-border p-1 rounded-lg shadow-sm">
-                <span className="text-[8px] font-mono uppercase font-bold text-muted-foreground mr-1">Scale:</span>
-                {(['XS', 'S', 'M', 'L', 'XL'] as WidgetSize[]).map((sz) => (
-                  <button
-                    key={sz}
-                    onClick={() => handleSizeChange(w.id, sz)}
-                    className={`text-[8px] font-bold px-1 py-0.5 rounded ${w.size === sz ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'}`}
-                  >
-                    {sz}
-                  </button>
-                ))}
-                <button
-                  onClick={() => handleHideWidget(w.id)}
-                  className="text-[8px] font-bold px-1 py-0.5 rounded bg-status-danger/10 text-status-danger hover:bg-status-danger/20 ml-1"
-                >
-                  Hide
-                </button>
-              </div>
-
               <WidgetFactory
                 widgetId={w.id}
               />

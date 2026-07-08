@@ -336,53 +336,6 @@ export function WorkspaceLayout({
           {/* Sidebar Scrollable Body */}
           <div className="flex-1 overflow-y-auto py-4 px-3 space-y-5 scrollbar-thin">
             
-            {/* FAVORITES SECTION */}
-            {favorites.length > 0 && !isSidebarCollapsed && (
-              <div className="space-y-1">
-                <div className="px-2 text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
-                  <span>Favorites</span>
-                  <Star className="h-2.5 w-2.5 text-status-warning fill-status-warning" />
-                </div>
-                <div className="space-y-0.5">
-                  {favorites.map(favId => {
-                    const item = ALL_NAV_ITEMS.find(n => n.id === favId);
-                    if (!item) return null;
-                    const Icon = ICON_REGISTRY[item.id] || LayoutDashboard;
-                    const isSelected = activeRouteId === item.id;
-                    return (
-                      <a
-                        key={favId}
-                        href={item.path}
-                        className={cn(
-                          'flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium transition-all group',
-                          isSelected 
-                            ? 'bg-foreground text-background font-semibold' 
-                            : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground'
-                        )}
-                        id={`fav-link-${favId}`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <Icon className="h-3.5 w-3.5" />
-                          <span>{item.label}</span>
-                        </div>
-                        <button 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            toggleFavorite(favId);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 hover:scale-115 transition-all text-status-warning"
-                          title="Unstar page"
-                        >
-                          <Star className="h-3 w-3 fill-current" />
-                        </button>
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* MAIN NAVIGATION GROUPINGS */}
             <nav className="space-y-4" aria-label="Main Navigation">
               {NAVIGATION_STRUCTURE.map((group, groupIdx) => (
@@ -401,7 +354,6 @@ export function WorkspaceLayout({
                       const isSelected = activeRouteId === item.id;
                       const globalIdx = ALL_NAV_ITEMS.findIndex(n => n.id === item.id);
                       const isFocused = focusedNavIndex === globalIdx;
-                      const isFav = favorites.includes(item.id);
 
                       return (
                         <div key={item.id} className="relative group/item flex items-center">
@@ -422,25 +374,6 @@ export function WorkspaceLayout({
                               <Icon className="h-3.5 w-3.5 shrink-0" />
                               {!isSidebarCollapsed && <span>{item.label}</span>}
                             </div>
-
-                            {/* Hover Star to Toggle Favorite */}
-                            {!isSidebarCollapsed && (
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  toggleFavorite(item.id);
-                                }}
-                                className={cn(
-                                  'transition-opacity hover:scale-115',
-                                  isFav 
-                                    ? 'text-status-warning opacity-100' 
-                                    : 'text-muted-foreground/35 hover:text-status-warning opacity-0 group-hover/item:opacity-100'
-                                )}
-                              >
-                                <Star className={cn('h-3 w-3', isFav && 'fill-current')} />
-                              </button>
-                            )}
                           </a>
                         </div>
                       );
@@ -449,32 +382,6 @@ export function WorkspaceLayout({
                 </div>
               ))}
             </nav>
-
-            {/* RECENT PAGES LIST */}
-            {recentPages.length > 0 && !isSidebarCollapsed && (
-              <div className="space-y-1 border-t border-border/60 pt-3">
-                <div className="px-2 text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-wider mb-1">
-                  Recents
-                </div>
-                <div className="space-y-0.5">
-                  {recentPages.map((recent, idx) => {
-                    const iconMap = ICON_REGISTRY[recent.routeId] || LayoutDashboard;
-                    const Icon = iconMap;
-                    return (
-                      <a
-                        key={`${recent.routeId}-${idx}`}
-                        href={`#${recent.routeId}`}
-                        className="flex items-center gap-2 px-2.5 py-1 rounded text-[11px] text-muted-foreground hover:text-foreground hover:bg-secondary/20 transition-all"
-                        id={`recent-link-${recent.routeId}`}
-                      >
-                        <Icon className="h-3 w-3 text-muted-foreground/50" />
-                        <span className="truncate">{recent.title}</span>
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Sidebar Collapsed/Footer Indicator */}
@@ -1024,9 +931,9 @@ export function WorkspaceLayout({
           {/* Sticky Bottom Credit Line */}
           <footer className="w-full border-t border-border py-4 bg-card/30 z-10 select-none">
             <div className="max-w-7xl mx-auto px-6 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-              <span>Track.Studio © 2026 • Workspace Foundation Shell</span>
+              <span>Track.Studio © 2026 • Endurance Performance Analytics</span>
               <span>
-                Fidelity Score: <b className="text-foreground">99.8%</b> • Recalibrated
+                Sync status: <b className="text-foreground">Active</b>
               </span>
             </div>
           </footer>

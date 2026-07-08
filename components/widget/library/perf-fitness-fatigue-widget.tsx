@@ -50,10 +50,10 @@ export function PerfFitnessFatigueWidget({ widgetId, viewModel }: WidgetRenderPr
   const validation = WidgetValidation.validatePerformanceTrend(viewModel);
   if (!validation.isValid) {
     return (
-      <div className="p-5 border border-status-danger/35 bg-status-danger/5 text-status-danger rounded-lg flex items-start gap-3 select-none">
+      <div className="p-5 border border-status-danger/35 bg-status-danger/5 text-status-danger rounded-xl flex items-start gap-3 select-none">
         <ShieldAlert className="h-5 w-5 shrink-0" />
-        <div className="text-xs font-mono leading-relaxed">
-          <span className="font-bold uppercase block mb-1">CONTRACT VALIDATION ERROR:</span>
+        <div className="text-xs leading-relaxed">
+          <span className="font-bold uppercase block mb-1">Data Stream Error:</span>
           {validation.error}
         </div>
       </div>
@@ -62,10 +62,10 @@ export function PerfFitnessFatigueWidget({ widgetId, viewModel }: WidgetRenderPr
 
   if (!visualizationModel) {
     return (
-      <div className="p-5 border border-status-danger/35 bg-status-danger/5 text-status-danger rounded-lg flex items-start gap-3 select-none">
+      <div className="p-5 border border-status-danger/35 bg-status-danger/5 text-status-danger rounded-xl flex items-start gap-3 select-none">
         <ShieldAlert className="h-5 w-5 shrink-0" />
-        <div className="text-xs font-mono leading-relaxed">
-          <span className="font-bold uppercase block mb-1">VISUALIZATION ENGINE ERROR:</span>
+        <div className="text-xs leading-relaxed">
+          <span className="font-bold uppercase block mb-1">Visualization Error:</span>
           Failed to build presentation-ready model from trend dataset.
         </div>
       </div>
@@ -76,11 +76,11 @@ export function PerfFitnessFatigueWidget({ widgetId, viewModel }: WidgetRenderPr
     <div className="p-4 sm:p-5 h-full flex flex-col justify-between select-none" id="widget-fitness-fatigue-trends">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold bg-secondary py-0.5 px-1.5 rounded text-muted-foreground uppercase">
-            Impulse-Response adaptation histories
+          <span className="text-[9px] font-mono font-bold bg-[#FF6B00]/10 text-[#FF6B00] py-0.5 px-1.5 rounded uppercase">
+            Endurance Adaptations Trend
           </span>
           <span className="text-[9px] font-mono text-muted-foreground uppercase">
-            Model: Banister EWMA (42/7 days)
+            Mode: EWMA (42/7 Days)
           </span>
         </div>
 

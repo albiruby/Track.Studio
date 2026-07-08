@@ -23,10 +23,10 @@ export function HomeWeeklySummaryWidget({ widgetId, viewModel }: WidgetRenderPro
   const validation = WidgetValidation.validateWeeklySummary(viewModel);
   if (!validation.isValid) {
     return (
-      <div className="p-5 border border-status-danger/35 bg-status-danger/5 text-status-danger rounded-lg flex items-start gap-3 select-none">
+      <div className="p-5 border border-status-danger/35 bg-status-danger/5 text-status-danger rounded-xl flex items-start gap-3 select-none">
         <ShieldAlert className="h-5 w-5 shrink-0" />
-        <div className="text-xs font-mono leading-relaxed">
-          <span className="font-bold uppercase block mb-1">CONTRACT VALIDATION ERROR:</span>
+        <div className="text-xs leading-relaxed">
+          <span className="font-bold uppercase block mb-1">Data Stream Error:</span>
           {validation.error}
         </div>
       </div>
@@ -53,8 +53,8 @@ export function HomeWeeklySummaryWidget({ widgetId, viewModel }: WidgetRenderPro
     <div className="p-4 sm:p-5 h-full flex flex-col justify-between select-none" id="widget-weekly-summary">
       <div>
         <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold bg-secondary py-0.5 px-1.5 rounded text-muted-foreground uppercase">
-            Microcycle Volume Accumulator
+          <span className="text-[9px] font-mono font-bold bg-primary/10 text-primary py-0.5 px-1.5 rounded uppercase">
+            Weekly Progression summary
           </span>
           <span className={`text-[10px] font-mono font-bold ${variancePercent >= 0 ? 'text-status-success' : 'text-muted-foreground'}`}>
             {variancePercent >= 0 ? `+${variancePercent.toFixed(1)}%` : `${variancePercent.toFixed(1)}%`} VS TARGET

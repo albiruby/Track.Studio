@@ -59,8 +59,8 @@ export function ActListViewWidget({ widgetId, viewModel }: WidgetRenderProps) {
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/40 pb-3">
           <div>
-            <span className="text-[9px] font-mono font-bold bg-secondary py-0.5 px-1.5 rounded text-muted-foreground uppercase">
-              Direct telemetry database logs
+            <span className="text-[9px] font-mono font-bold bg-[#FF6B00]/10 py-0.5 px-1.5 rounded text-[#FF6B00] uppercase">
+              Activity History
             </span>
             <h4 className="text-sm font-bold text-foreground mt-1 uppercase tracking-tight">
               Synchronized Ingests ({activities.length})
@@ -128,8 +128,8 @@ export function ActListViewWidget({ widgetId, viewModel }: WidgetRenderProps) {
       </div>
 
       <div className="mt-4 text-[9px] font-mono text-muted-foreground pt-2.5 border-t border-border/30 flex items-center justify-between">
-        <span>Webhooks: active subscription</span>
-        <span>Filter matching: {filteredActivities.length} / {activities.length} runs</span>
+        <span>Feed status: Online</span>
+        <span>Showing {filteredActivities.length} of {activities.length} workouts</span>
       </div>
     </div>
   );
