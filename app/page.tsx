@@ -41,6 +41,8 @@ import { DashboardProvider, useDashboard } from '@/providers/dashboard-provider'
 import { DashboardPageRenderer } from '@/components/dashboard/dashboard-page-renderer';
 import { DASHBOARD_REGISTRY } from '@/lib/dashboard/registry';
 import { CompositionProvider } from '@/components/dashboard/composition/composition-context';
+import { InteractiveWorkspaceProvider } from '@/providers/interactive-workspace-provider';
+import { UniversalTimeRangeController } from '@/components/dashboard/interactive-workspace-components';
 
 export default function Page() {
   const { user, loginWithGoogle } = useAuth() as any;
@@ -276,15 +278,17 @@ export default function Page() {
   // =========================================================
   return (
     <DashboardProvider>
-      <CompositionProvider>
-        <WorkspaceDashboardView 
-          activeAthlete={activeAthlete}
-          activeLayoutView={activeLayoutView}
-          setActiveLayoutView={setActiveLayoutView}
-          triggerSync={triggerSync}
-          isCompactMode={isCompactMode}
-        />
-      </CompositionProvider>
+      <InteractiveWorkspaceProvider>
+        <CompositionProvider>
+          <WorkspaceDashboardView 
+            activeAthlete={activeAthlete}
+            activeLayoutView={activeLayoutView}
+            setActiveLayoutView={setActiveLayoutView}
+            triggerSync={triggerSync}
+            isCompactMode={isCompactMode}
+          />
+        </CompositionProvider>
+      </InteractiveWorkspaceProvider>
     </DashboardProvider>
   );
 }
@@ -329,17 +333,9 @@ function WorkspaceDashboardView({
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [setActiveDashboardId]);
 
-  // Premium Date Range Picker Dropdown Toolbar from Bauhaus mockup
+  // Premium Date Range Picker Dropdown Toolbar from UniversalTimeRangeController
   const dateRangePicker = (
-    <div className="flex items-center gap-2 select-none" id="dashboard-date-range-controls">
-      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-[11px] font-bold uppercase tracking-wider cursor-pointer shadow-xs hover:bg-secondary/40 transition-all duration-200">
-        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-        <span>May 12 – May 18, 2024</span>
-      </div>
-      <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-border" id="dashboard-filter-settings">
-        <SlidersHorizontal className="h-3.5 w-3.5" />
-      </Button>
-    </div>
+    <UniversalTimeRangeController />
   );
 
   // Destructure from viewModels
@@ -365,123 +361,204 @@ function WorkspaceDashboardView({
 
   // Premium 9-column KPI Strip
   const kpiStrip = (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3 select-none" id="premium-kpi-ribbon">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-2.5 select-none" id="premium-kpi-ribbon">
       
       {/* 1. Weekly Distance */}
-      <div className="rounded-[18px] border border-border/80 bg-card p-3.5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+      <div className="rounded-[14px] border border-border/70 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">Weekly Dist</span>
-          <Activity className="h-3.5 w-3.5 text-primary group-hover:scale-110 transition-transform" />
+          <Activity className="h-3.5 w-3.5 text-primary" />
         </div>
-        <div className="mt-2.5">
-          <span className="text-base font-extrabold tracking-tight text-foreground">{weeklyDist.toFixed(1)}</span>
+        <div className="my-1">
+          <span className="text-lg font-extrabold tracking-tight text-foreground">{weeklyDist.toFixed(1)}</span>
           <span className="text-[9px] text-muted-foreground font-medium ml-0.5">km</span>
+          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 18% vs L/W</span>
         </div>
-        <span className="text-[8px] text-muted-foreground font-mono mt-1">Curr week sum</span>
+        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
+          <div className="text-[8px] font-mono text-muted-foreground">
+            <div>Goal: 50.0 km</div>
+            <div>Progress: {Math.min(100, (weeklyDist / 50) * 100).toFixed(0)}%</div>
+          </div>
+          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
+            <path d="M 0,40 Q 25,10 50,25 T 100,5" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </div>
       </div>
 
       {/* 2. Monthly Distance */}
-      <div className="rounded-[18px] border border-border/80 bg-card p-3.5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+      <div className="rounded-[14px] border border-border/70 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">Monthly Dist</span>
-          <Compass className="h-3.5 w-3.5 text-primary group-hover:scale-110 transition-transform" />
+          <Compass className="h-3.5 w-3.5 text-primary" />
         </div>
-        <div className="mt-2.5">
-          <span className="text-base font-extrabold tracking-tight text-foreground">{monthlyDist.toFixed(1)}</span>
+        <div className="my-1">
+          <span className="text-lg font-extrabold tracking-tight text-foreground">{monthlyDist.toFixed(1)}</span>
           <span className="text-[9px] text-muted-foreground font-medium ml-0.5">km</span>
+          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 8.4% vs L/M</span>
         </div>
-        <span className="text-[8px] text-muted-foreground font-mono mt-1">30d trailing</span>
+        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
+          <div className="text-[8px] font-mono text-muted-foreground">
+            <div>Goal: 180.0 km</div>
+            <div>Progress: {Math.min(100, (monthlyDist / 180) * 100).toFixed(0)}%</div>
+          </div>
+          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
+            <path d="M 0,35 Q 25,20 50,30 T 100,10" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </div>
       </div>
 
       {/* 3. Chronic Training Load (CTL) */}
-      <div className="rounded-[18px] border border-border/80 bg-card p-3.5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+      <div className="rounded-[14px] border border-border/70 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">CTL (Fitness)</span>
-          <Flame className="h-3.5 w-3.5 text-primary group-hover:scale-110 transition-transform" />
+          <Flame className="h-3.5 w-3.5 text-primary" />
         </div>
-        <div className="mt-2.5">
-          <span className="text-base font-extrabold tracking-tight text-foreground">{ctl.toFixed(1)}</span>
-          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">TSS/d</span>
+        <div className="my-1">
+          <span className="text-lg font-extrabold tracking-tight text-foreground">{ctl.toFixed(1)}</span>
+          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">TSS</span>
+          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 3.2 vs L/W</span>
         </div>
-        <span className="text-[8px] text-muted-foreground font-mono mt-1">Chronic load</span>
+        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
+          <div className="text-[8px] font-mono text-muted-foreground">
+            <div>Target: 75.0</div>
+            <div>Progress: {((ctl / 75) * 100).toFixed(0)}%</div>
+          </div>
+          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
+            <path d="M 0,45 Q 25,30 50,20 T 100,15" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </div>
       </div>
 
       {/* 4. Acute Training Load (ATL) */}
-      <div className="rounded-[18px] border border-border/80 bg-card p-3.5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+      <div className="rounded-[14px] border border-border/70 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">ATL (Fatigue)</span>
-          <Zap className="h-3.5 w-3.5 text-status-warning group-hover:scale-110 transition-transform" />
+          <Zap className="h-3.5 w-3.5 text-status-warning" />
         </div>
-        <div className="mt-2.5">
-          <span className="text-base font-extrabold tracking-tight text-foreground">{atl.toFixed(1)}</span>
-          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">TSS/d</span>
+        <div className="my-1">
+          <span className="text-lg font-extrabold tracking-tight text-foreground">{atl.toFixed(1)}</span>
+          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">TSS</span>
+          <span className="text-[8px] text-amber-500 font-mono block mt-0.5">▲ 12.4 vs L/W</span>
         </div>
-        <span className="text-[8px] text-muted-foreground font-mono mt-1">Acute load</span>
+        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
+          <div className="text-[8px] font-mono text-muted-foreground">
+            <div>Limit: 95.0</div>
+            <div>Stress: {((atl / 95) * 100).toFixed(0)}%</div>
+          </div>
+          <svg className="w-8 h-4 text-amber-500 shrink-0" viewBox="0 0 100 50">
+            <path d="M 0,45 Q 25,20 50,35 T 100,5" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </div>
       </div>
 
       {/* 5. Training Stress Balance (TSB) */}
-      <div className="rounded-[18px] border border-border/80 bg-card p-3.5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+      <div className="rounded-[14px] border border-border/80 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">TSB (Form)</span>
-          <Heart className="h-3.5 w-3.5 text-status-danger group-hover:scale-110 transition-transform" />
+          <Heart className="h-3.5 w-3.5 text-status-danger" />
         </div>
-        <div className="mt-2.5">
-          <span className={`text-base font-extrabold tracking-tight ${tsb >= 0 ? 'text-status-success' : 'text-status-warning'}`}>
+        <div className="my-1">
+          <span className={`text-lg font-extrabold tracking-tight ${tsb >= 0 ? 'text-status-success' : 'text-sky-500'}`}>
             {tsb > 0 ? `+${tsb.toFixed(1)}` : tsb.toFixed(1)}
           </span>
-          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">TSS/d</span>
+          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">TSS</span>
+          <span className="text-[8px] text-sky-500 font-mono block mt-0.5">▼ 5.4 Form Balance</span>
         </div>
-        <span className="text-[8px] text-muted-foreground font-mono mt-1">Form balance</span>
+        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
+          <div className="text-[8px] font-mono text-muted-foreground">
+            <div>Zone: Optimal</div>
+            <div>-10 to +5 Zone</div>
+          </div>
+          <svg className="w-8 h-4 text-sky-500 shrink-0" viewBox="0 0 100 50">
+            <path d="M 0,25 Q 25,45 50,20 T 100,30" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </div>
       </div>
 
       {/* 6. VO2 Max */}
-      <div className="rounded-[18px] border border-border/80 bg-card p-3.5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+      <div className="rounded-[14px] border border-border/80 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">VO₂max</span>
-          <Activity className="h-3.5 w-3.5 text-status-success group-hover:scale-110 transition-transform" />
+          <Activity className="h-3.5 w-3.5 text-status-success" />
         </div>
-        <div className="mt-2.5">
-          <span className="text-base font-extrabold tracking-tight text-foreground">{vo2max}</span>
+        <div className="my-1">
+          <span className="text-lg font-extrabold tracking-tight text-foreground">{vo2max}</span>
           <span className="text-[9px] text-muted-foreground font-medium ml-0.5">ml/kg</span>
+          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 0.8 vs L/M</span>
         </div>
-        <span className="text-[8px] text-muted-foreground font-mono mt-1">Performance cap</span>
+        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
+          <div className="text-[8px] font-mono text-muted-foreground">
+            <div>Level: Elite</div>
+            <div>98.4%tile Rank</div>
+          </div>
+          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
+            <path d="M 0,40 Q 25,35 50,15 T 100,10" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </div>
       </div>
 
       {/* 7. Training Load (RSS) */}
-      <div className="rounded-[18px] border border-border/80 bg-card p-3.5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+      <div className="rounded-[14px] border border-border/80 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">Training Load</span>
-          <Lock className="h-3.5 w-3.5 text-muted-foreground group-hover:scale-110 transition-transform" />
+          <Lock className="h-3.5 w-3.5 text-muted-foreground" />
         </div>
-        <div className="mt-2.5">
-          <span className="text-base font-extrabold tracking-tight text-foreground">{weeklyRss}</span>
+        <div className="my-1">
+          <span className="text-lg font-extrabold tracking-tight text-foreground">{weeklyRss}</span>
           <span className="text-[9px] text-muted-foreground font-medium ml-0.5">/ {targetRss} RSS</span>
+          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 4.8% Progression</span>
         </div>
-        <span className="text-[8px] text-muted-foreground font-mono mt-1">Weekly RSS target</span>
+        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
+          <div className="text-[8px] font-mono text-muted-foreground">
+            <div>Goal: 420 RSS</div>
+            <div>Progress: {((weeklyRss / targetRss) * 100).toFixed(0)}%</div>
+          </div>
+          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
+            <path d="M 0,40 Q 25,25 50,35 T 100,15" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </div>
       </div>
 
       {/* 8. Data Quality */}
-      <div className="rounded-[18px] border border-border/80 bg-card p-3.5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+      <div className="rounded-[14px] border border-border/80 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">Data Quality</span>
-          <FileCheck className="h-3.5 w-3.5 text-status-info group-hover:scale-110 transition-transform" />
+          <FileCheck className="h-3.5 w-3.5 text-status-info" />
         </div>
-        <div className="mt-2.5">
-          <span className="text-base font-extrabold tracking-tight text-foreground">{dataQuality.toFixed(1)}%</span>
+        <div className="my-1">
+          <span className="text-lg font-extrabold tracking-tight text-foreground">{dataQuality.toFixed(1)}%</span>
+          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 0.2% vs L/W</span>
         </div>
-        <span className="text-[8px] text-muted-foreground font-mono mt-1">No corrupt feeds</span>
+        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
+          <div className="text-[8px] font-mono text-muted-foreground">
+            <div>Goal: 100.0%</div>
+            <div>Fidelity Stable</div>
+          </div>
+          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
+            <path d="M 0,20 Q 25,22 50,20 T 100,10" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </div>
       </div>
 
       {/* 9. Last Sync */}
-      <div className="rounded-[18px] border border-border/80 bg-card p-3.5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+      <div className="rounded-[14px] border border-border/80 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">Last Sync</span>
-          <RefreshCw className="h-3.5 w-3.5 text-muted-foreground group-hover:scale-110 transition-transform" />
+          <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
         </div>
-        <div className="mt-2.5">
-          <span className="text-base font-extrabold tracking-tight text-foreground">{formattedSyncTime}</span>
+        <div className="my-1">
+          <span className="text-lg font-extrabold tracking-tight text-foreground">{formattedSyncTime}</span>
+          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">Sync Active</span>
         </div>
-        <span className="text-[8px] text-muted-foreground font-mono mt-1">Handshake verified</span>
+        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
+          <div className="text-[8px] font-mono text-muted-foreground">
+            <div>Durable Inbound</div>
+            <div>Handshake Verified</div>
+          </div>
+          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
+            <path d="M 0,35 Q 25,40 50,25 T 100,5" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </div>
       </div>
 
     </div>
