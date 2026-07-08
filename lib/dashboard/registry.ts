@@ -4,6 +4,17 @@ import { DashboardRegistryEntry, WidgetRegistryEntry } from '@/types/dashboard';
  * Registry of all 15 Track.Studio dashboards as per Phase 11 requirements
  */
 export const DASHBOARD_REGISTRY: Record<string, DashboardRegistryEntry> = {
+  activity_analysis: {
+    id: 'activity_analysis',
+    name: 'Activity Analysis',
+    category: 'Core Workspace',
+    supportedViewModels: ['ActivityDetailViewModel'],
+    supportedWidgets: [],
+    layoutTemplate: 'report',
+    version: '1.0.0',
+    status: 'active',
+    documentation: 'Provides an exhaustive, highly detailed scientific report on a single synchronized training session.'
+  },
   dashboard: {
     id: 'dashboard',
     name: 'Home Dashboard',

@@ -15,7 +15,7 @@ export interface DashboardRegistryEntry {
   category: string; // e.g. 'Core Workspace', 'Analytics Engine'
   supportedViewModels: string[]; // e.g. ['HomeDashboardViewModel']
   supportedWidgets: string[]; // List of widget IDs
-  layoutTemplate: 'grid' | 'bento' | 'split' | 'vertical' | 'connections';
+  layoutTemplate: 'grid' | 'bento' | 'split' | 'vertical' | 'connections' | 'report';
   version: string;
   status: 'active' | 'deprecated' | 'experimental';
   documentation: string;

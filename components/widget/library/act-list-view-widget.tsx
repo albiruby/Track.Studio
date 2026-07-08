@@ -350,7 +350,10 @@ export function ActListViewWidget({ widgetId, viewModel }: WidgetRenderProps) {
                   return (
                     <tr 
                       key={act.id} 
-                      onClick={() => setSelectedActivityId(act.id)}
+                      onClick={() => {
+                        setSelectedActivityId(act.id);
+                        window.location.hash = '#activity_analysis';
+                      }}
                       className={`border-b border-border/50 hover:bg-primary/5 transition-all duration-150 cursor-pointer group ${isSelected ? 'bg-primary/5 border-l-2 border-l-primary' : ''}`}
                     >
                       <td className="py-3 px-3 font-bold text-foreground uppercase truncate max-w-[180px]">

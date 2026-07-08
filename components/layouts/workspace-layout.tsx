@@ -68,6 +68,7 @@ export const ICON_REGISTRY: Record<string, any> = {
   dashboard: LayoutDashboard,
   performance: TrendingUp,
   activities: Flame,
+  activity_analysis: Activity,
   training_load: Scale,
   recovery: Battery,
   compare: GitCompare,
@@ -98,6 +99,7 @@ export const NAVIGATION_STRUCTURE = [
     category: 'Training',
     items: [
       { id: 'activities', label: 'Activities', path: '#activities' },
+      { id: 'activity_analysis', label: 'Activity Analysis', path: '#activity_analysis' },
       { id: 'training_load', label: 'Training Load', path: '#training_load' },
       { id: 'recovery', label: 'Recovery', path: '#recovery' },
       { id: 'compare', label: 'Compare', path: '#compare' },

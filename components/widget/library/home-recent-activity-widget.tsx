@@ -8,9 +8,12 @@
 import React from 'react';
 import { WidgetRenderProps } from '@/lib/widget/library';
 import { WidgetValidation } from '@/lib/widget/validation';
-import { ShieldAlert, Zap, Heart, Flame, Calendar, RefreshCw } from 'lucide-react';
+import { ShieldAlert, Zap, Heart, Flame, Calendar, RefreshCw, ArrowRight } from 'lucide-react';
+import { useInteractiveWorkspace } from '@/providers/interactive-workspace-provider';
 
 export function HomeRecentActivityWidget({ widgetId, viewModel }: WidgetRenderProps) {
+  const { setSelectedActivityId } = useInteractiveWorkspace();
+  
   if (!viewModel) {
     return (
       <div className="p-6 text-center text-xs text-muted-foreground font-mono uppercase">
@@ -61,7 +64,14 @@ export function HomeRecentActivityWidget({ widgetId, viewModel }: WidgetRenderPr
   });
 
   return (
-    <div className="p-4 sm:p-5 h-full flex flex-col justify-between select-none" id="widget-recent-activity">
+    <div 
+      onClick={() => {
+        setSelectedActivityId('run_1');
+        window.location.hash = '#activity_analysis';
+      }}
+      className="p-4 sm:p-5 h-full flex flex-col justify-between select-none cursor-pointer hover:bg-primary/5 transition-all duration-150 group/card" 
+      id="widget-recent-activity"
+    >
       <div>
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">

@@ -39,6 +39,7 @@ import {
 // Phase 11 Dashboard Platform Integrations
 import { DashboardProvider, useDashboard } from '@/providers/dashboard-provider';
 import { DashboardPageRenderer } from '@/components/dashboard/dashboard-page-renderer';
+import { ActivityAnalysisWorkspace } from '@/components/dashboard/activity-analysis-workspace';
 import { DASHBOARD_REGISTRY } from '@/lib/dashboard/registry';
 import { CompositionProvider } from '@/components/dashboard/composition/composition-context';
 import { InteractiveWorkspaceProvider } from '@/providers/interactive-workspace-provider';
@@ -570,6 +571,8 @@ function WorkspaceDashboardView({
       {kpiStrip}
       {activeDashboardId === 'connections' ? (
         <ConnectionCenter />
+      ) : activeDashboardId === 'activity_analysis' ? (
+        <ActivityAnalysisWorkspace />
       ) : (
         <DashboardPageRenderer />
       )}
