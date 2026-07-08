@@ -44,7 +44,10 @@ import {
   FileDown,
   Sparkles,
   Check,
-  CheckSquare
+  CheckSquare,
+  Calendar,
+  Map,
+  Activity
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -63,17 +66,20 @@ interface WorkspaceLayoutProps {
 // Map route IDs to Lucide icons
 export const ICON_REGISTRY: Record<string, any> = {
   dashboard: LayoutDashboard,
-  activities: Flame,
   performance: TrendingUp,
-  heart_rate: Heart,
-  power: Zap,
-  cadence: Footprints,
+  activities: Flame,
   training_load: Scale,
   recovery: Battery,
-  environment: CloudSun,
-  equipment: Compass,
   compare: GitCompare,
-  search: Search,
+  calendar: Calendar,
+  heart_rate: Heart,
+  power: Zap,
+  pace: Activity,
+  cadence: Footprints,
+  running_dynamics: Sparkles,
+  routes: Map,
+  equipment: Compass,
+  environment: CloudSun,
   connections: Database,
   data_health: ShieldAlert,
   settings: Settings,
@@ -82,39 +88,42 @@ export const ICON_REGISTRY: Record<string, any> = {
 // Route structures and categories
 export const NAVIGATION_STRUCTURE = [
   {
-    category: 'Core Workspace',
+    category: 'Overview',
     items: [
       { id: 'dashboard', label: 'Dashboard', path: '#dashboard' },
-      { id: 'activities', label: 'Activities', path: '#activities' },
+      { id: 'performance', label: 'Performance', path: '#performance' },
     ]
   },
   {
-    category: 'Analytics Engine',
+    category: 'Training',
     items: [
-      { id: 'performance', label: 'Performance', path: '#performance' },
+      { id: 'activities', label: 'Activities', path: '#activities' },
       { id: 'training_load', label: 'Training Load', path: '#training_load' },
       { id: 'recovery', label: 'Recovery', path: '#recovery' },
       { id: 'compare', label: 'Compare', path: '#compare' },
-      { id: 'search', label: 'Search', path: '#search' },
+      { id: 'calendar', label: 'Calendar', path: '#calendar' },
     ]
   },
   {
-    category: 'Sensor Insights',
+    category: 'Analytics',
     items: [
       { id: 'heart_rate', label: 'Heart Rate', path: '#heart_rate' },
       { id: 'power', label: 'Power', path: '#power' },
+      { id: 'pace', label: 'Pace', path: '#pace' },
       { id: 'cadence', label: 'Cadence', path: '#cadence' },
+      { id: 'running_dynamics', label: 'Running Dynamics', path: '#running_dynamics' },
     ]
   },
   {
-    category: 'Environment & Gear',
+    category: 'Tools',
     items: [
-      { id: 'environment', label: 'Environment', path: '#environment' },
+      { id: 'routes', label: 'Routes', path: '#routes' },
       { id: 'equipment', label: 'Equipment', path: '#equipment' },
+      { id: 'environment', label: 'Environment', path: '#environment' },
     ]
   },
   {
-    category: 'System Administration',
+    category: 'System',
     items: [
       { id: 'connections', label: 'Connections', path: '#connections' },
       { id: 'data_health', label: 'Data Health', path: '#data_health' },
@@ -294,17 +303,17 @@ export function WorkspaceLayout({
         >
           {/* Sidebar Brand Header */}
           <div className="h-14 border-b border-border flex items-center justify-between px-4">
-            <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="h-8 w-8 rounded-lg bg-foreground text-background flex items-center justify-center font-bold shrink-0 shadow-sm">
-                <Flame className="h-4.5 w-4.5 text-status-warning" />
+            <div className="flex items-center gap-2.5 overflow-hidden select-none">
+              <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold shrink-0 shadow-sm">
+                <Flame className="h-4.5 w-4.5" />
               </div>
               {!isSidebarCollapsed && (
                 <div className="flex flex-col animate-in fade-in duration-200">
-                  <span className="text-sm font-bold tracking-tight uppercase">
-                    Track<span className="text-muted-foreground font-light">.Studio</span>
+                  <span className="text-sm font-black tracking-wider uppercase text-foreground">
+                    TRACK<span className="text-primary font-bold">.STUDIO</span>
                   </span>
-                  <div className="text-[9px] text-muted-foreground font-mono leading-none tracking-widest uppercase mt-0.5">
-                    Workspace v10
+                  <div className="text-[7.5px] text-muted-foreground font-bold tracking-widest uppercase mt-0.5 leading-none">
+                    BAUHAUS WORKSPACE
                   </div>
                 </div>
               )}
@@ -399,11 +408,11 @@ export function WorkspaceLayout({
                           <a
                             href={item.path}
                             className={cn(
-                              'flex-1 flex items-center justify-between rounded-md transition-all',
-                              isSidebarCollapsed ? 'p-2 justify-center' : 'px-2.5 py-1.5 text-xs font-medium',
+                              'flex-1 flex items-center justify-between rounded-lg transition-all duration-300 relative overflow-hidden group/link',
+                              isSidebarCollapsed ? 'p-2 justify-center' : 'px-3 py-1.5 text-xs font-medium',
                               isSelected 
-                                ? 'bg-foreground text-background font-semibold shadow-sm' 
-                                : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground',
+                                ? 'bg-primary/8 text-primary font-bold border-r-3 border-primary rounded-r-none' 
+                                : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground hover:translate-x-0.5',
                               isFocused && 'ring-1 ring-ring bg-secondary/30'
                             )}
                             id={`sidebar-link-${item.id}`}
@@ -469,7 +478,7 @@ export function WorkspaceLayout({
           </div>
 
           {/* Sidebar Collapsed/Footer Indicator */}
-          <div className="p-3 border-t border-border flex flex-col gap-1.5 bg-muted/20">
+          <div className="p-3 border-t border-border bg-card/50 flex flex-col gap-2 relative">
             {isSidebarCollapsed ? (
               <Button 
                 variant="ghost" 
@@ -482,20 +491,44 @@ export function WorkspaceLayout({
                 <ChevronRight className="h-4 w-4" />
               </Button>
             ) : (
-              <div className="flex flex-col gap-2">
-                {/* Active Ingestion Feed Indicators */}
-                <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground px-1" id="ingestion-connection-badges">
-                  <span className="flex items-center gap-1.5">
-                    <Wifi className="h-3 w-3 text-status-success" />
-                    Strava
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <WifiOff className="h-3 w-3 text-muted-foreground/50" />
-                    Intervals.icu
-                  </span>
+              <div className="flex flex-col gap-2.5">
+                {/* Synced Status Widget from Bauhaus mockup */}
+                <div className="p-3 bg-status-success/5 rounded-2xl border border-status-success/15 flex flex-col gap-2 relative group hover:bg-status-success/10 transition-colors duration-300">
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-status-success/20 flex items-center justify-center text-status-success shrink-0">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] font-bold text-foreground leading-none">Data Synced</span>
+                      <span className="text-[8px] text-muted-foreground font-medium mt-0.5">Just now</span>
+                    </div>
+                  </div>
+                  {/* Row of green progress indicators */}
+                  <div className="flex gap-0.5 mt-1">
+                    {Array.from({ length: 16 }).map((_, i) => (
+                      <div key={i} className="h-1 flex-1 bg-status-success rounded-xs" />
+                    ))}
+                  </div>
                 </div>
-                <div className="text-[9px] text-muted-foreground font-mono text-center bg-muted/40 py-1 rounded">
-                  Press <kbd className="font-sans px-1 bg-card border border-border rounded text-[8px]">Ctrl</kbd> + <kbd className="font-sans px-1 bg-card border border-border rounded text-[8px]">/</kbd>
+
+                {/* Sub-footer containing shortcut info and the code icon toggle */}
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground px-1 select-none">
+                  <span className="font-medium">Press <kbd className="font-sans px-1 bg-muted border border-border rounded text-[8px]">Ctrl</kbd> + <kbd className="font-sans px-1 bg-muted border border-border rounded text-[8px]">/</kbd></span>
+                  
+                  {/* The </> Toggle Button at bottom right of sidebar */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setCompactMode(!isCompactMode)}
+                    className={cn(
+                      "h-6 w-6 text-muted-foreground hover:text-primary rounded-md transition-colors",
+                      isCompactMode && "text-primary bg-primary/10"
+                    )}
+                    title="Toggle Dense View"
+                    id="sidebar-code-toggle"
+                  >
+                    <span className="font-mono text-[10px] font-bold">&lt;/&gt;</span>
+                  </Button>
                 </div>
               </div>
             )}

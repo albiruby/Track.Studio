@@ -35,40 +35,40 @@
 }
 
 :root {
-  --background: #fafafa;
-  --foreground: #0f172a;
+  --background: #F7F8FA;
+  --foreground: #121417;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #121417;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #121417;
   --primary: #FC5200;
   --primary-foreground: #ffffff;
   --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
+  --secondary-foreground: #121417;
   --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  --muted-foreground: #6B7280;
   --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
+  --accent-foreground: #121417;
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
+  --border: #E7EAF0;
+  --input: #E7EAF0;
   --ring: #FC5200;
   
-  --status-success: #10b981;
-  --status-warning: #f59e0b;
-  --status-danger: #ef4444;
-  --status-info: #3b82f6;
+  --status-success: #16A34A;
+  --status-warning: #F59E0B;
+  --status-danger: #DC2626;
+  --status-info: #2563EB;
   
   --radius: 1.25rem;
 }
 
 .dark {
-  --background: #030712;
+  --background: #0b0f19;
   --foreground: #f3f4f6;
-  --card: #0b0f19;
+  --card: #111827;
   --card-foreground: #f3f4f6;
-  --popover: #0b0f19;
+  --popover: #111827;
   --popover-foreground: #f3f4f6;
   --primary: #FC5200;
   --primary-foreground: #ffffff;
@@ -84,13 +84,37 @@
   --input: #1f2937;
   --ring: #FC5200;
   
-  --status-success: #34d399;
-  --status-warning: #fbbf24;
-  --status-danger: #f87171;
-  --status-info: #60a5fa;
+  --status-success: #16A34A;
+  --status-warning: #F59E0B;
+  --status-danger: #DC2626;
+  --status-info: #2563EB;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
+}
+
+/* Custom Bauhaus thin scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E7EAF0;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FC5200;
+  background-clip: border-box;
 }

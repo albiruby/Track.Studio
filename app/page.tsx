@@ -31,7 +31,9 @@ import {
   Zap, 
   ChevronRight,
   Eye,
-  RefreshCw
+  RefreshCw,
+  Calendar,
+  SlidersHorizontal
 } from 'lucide-react';
 
 // Phase 11 Dashboard Platform Integrations
@@ -327,25 +329,16 @@ function WorkspaceDashboardView({
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [setActiveDashboardId]);
 
-  // Layout Selector Dropdown Toolbar
-  const layoutSelectorToolbar = (
-    <div className="flex items-center gap-1.5 border border-border bg-card rounded-md p-1" id="layout-preview-selector-harness">
-      <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 text-muted-foreground hidden lg:inline">Layout previewer:</span>
-      <select
-        value={activeLayoutView}
-        onChange={(e) => setActiveLayoutView(e.target.value as any)}
-        className="text-[10px] font-semibold uppercase bg-secondary/60 hover:bg-secondary border-0 outline-none rounded py-1 px-2.5 cursor-pointer max-w-[150px] truncate"
-        id="layout-template-select"
-      >
-        <option value="standard">Standard Shell</option>
-        <option value="auth">Auth Layout</option>
-        <option value="fullscreen">Fullscreen Layout</option>
-        <option value="error">Error Diagnostics (500)</option>
-        <option value="maintenance">Maintenance mode</option>
-        <option value="offline">Offline simulator</option>
-        <option value="empty">Onboarding Empty</option>
-        <option value="print">Print Grayscale PDF</option>
-      </select>
+  // Premium Date Range Picker Dropdown Toolbar from Bauhaus mockup
+  const dateRangePicker = (
+    <div className="flex items-center gap-2 select-none" id="dashboard-date-range-controls">
+      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-[11px] font-bold uppercase tracking-wider cursor-pointer shadow-xs hover:bg-secondary/40 transition-all duration-200">
+        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+        <span>May 12 – May 18, 2024</span>
+      </div>
+      <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-border" id="dashboard-filter-settings">
+        <SlidersHorizontal className="h-3.5 w-3.5" />
+      </Button>
     </div>
   );
 
@@ -506,20 +499,37 @@ function WorkspaceDashboardView({
     </div>
   );
 
-  // Side Panel Widget showing quick stats logs
-  const sidebarInspectorWidget = (
-    <div className="space-y-4 text-xs leading-normal select-none" id="workspace-sidebar-inspect-widget">
-      <div className="p-3.5 rounded-lg border border-border bg-muted/40 font-mono text-[10px] space-y-1.5">
-        <span className="font-bold text-foreground block uppercase">Telemetry Status:</span>
-        <div>• Active Client Port: <b>3000</b></div>
-        <div>• Ingestion Handshake: <b>Google Firebase</b></div>
-        <div>• Persistence Store: <b>Cloud Firestore</b></div>
-        <div>• Active Workspace: <b className="text-foreground uppercase">{activeDashboardId}</b></div>
-        <div>• Render Mode: <b className="text-foreground uppercase">{dashboardState}</b></div>
+  // Premium Sports Analytics Insight Card
+  const sportsInsightWidget = (
+    <div className="space-y-4 text-xs leading-normal select-none" id="workspace-sidebar-sports-insight">
+      <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-3">
+        <span className="font-bold text-foreground block uppercase text-[10px] tracking-wider">Weekly Progression</span>
+        
+        <div className="space-y-2">
+          <div>
+            <div className="flex justify-between text-[11px] mb-1">
+              <span className="text-muted-foreground font-medium">RSS Target Progress</span>
+              <span className="font-bold text-foreground">70%</span>
+            </div>
+            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+              <div className="h-full bg-primary rounded-full" style={{ width: '70%' }} />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between text-[11px] mb-1">
+              <span className="text-muted-foreground font-medium">Distance Progress</span>
+              <span className="font-bold text-foreground">85%</span>
+            </div>
+            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+              <div className="h-full bg-status-success rounded-full" style={{ width: '85%' }} />
+            </div>
+          </div>
+        </div>
       </div>
-      
-      <p className="text-muted-foreground font-medium">
-        The analytics query engine compiles synchronized activities directly on user actions. Use the dashboard selectors to filter streams down to fine grain tempos.
+
+      <p className="text-muted-foreground font-medium text-[11px] leading-relaxed">
+        Your Chronic Training Load (CTL) has increased by <b>3.2%</b> over the last 7 days, indicating supercompensation of physical capacity. Keep acute fatigue in check.
       </p>
     </div>
   );
@@ -535,9 +545,9 @@ function WorkspaceDashboardView({
       title={workspaceTitle}
       subtitle={workspaceSubtitle}
       activeRouteId={activeDashboardId}
-      toolbar={layoutSelectorToolbar}
+      toolbar={dateRangePicker}
       contentSlot={contentBody}
-      sidePanelSlot={sidebarInspectorWidget}
+      sidePanelSlot={sportsInsightWidget}
       footerSlot={
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] font-mono uppercase text-muted-foreground">
           <span>Database handshakes: <b className="text-foreground">Connected</b></span>
