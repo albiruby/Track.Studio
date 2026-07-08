@@ -54,20 +54,26 @@ service cloud.firestore {
 
     // Athlete Profile Schema Validator
     function isValidAthleteProfile(data) {
-      return data.keys().hasAll(['userId', 'maxHeartRate', 'restingHeartRate', 'functionalThresholdPace', 'createdAt', 'updatedAt'])
-        && data.userId is string
-        && data.userId == request.auth.uid
-        && data.maxHeartRate is int
-        && data.maxHeartRate > 30
-        && data.maxHeartRate < 250
-        && data.restingHeartRate is int
-        && data.restingHeartRate > 25
-        && data.restingHeartRate < 150
-        && data.functionalThresholdPace is number
-        && data.functionalThresholdPace >= 0.0
-        && data.functionalThresholdPace < 15.0 // ~2:13 min/mile limit
+      return data.keys().hasAll(['id', 'email', 'emailVerified', 'isAnonymous', 'lastLoginAt', 'createdAt', 'updatedAt'])
+        && data.id is string
+        && data.id == request.auth.uid
+        && (data.email == null || (data.email is string && data.email.size() <= 256))
+        && (data.displayName == null || (data.displayName is string && data.displayName.size() <= 256))
+        && (data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1024))
+        && data.emailVerified is bool
+        && data.isAnonymous is bool
+        && (data.phoneNumber == null || (data.phoneNumber is string && data.phoneNumber.size() <= 32))
+        && data.lastLoginAt is string
         && data.createdAt is string
-        && data.updatedAt is string;
+        && data.updatedAt is string
+        // Optional physiological parameters
+        && (!data.keys().hasAny(['maxHeartRate']) || (data.maxHeartRate == null || (data.maxHeartRate is int && data.maxHeartRate > 30 && data.maxHeartRate < 250)))
+        && (!data.keys().hasAny(['restingHeartRate']) || (data.restingHeartRate == null || (data.restingHeartRate is int && data.restingHeartRate > 25 && data.restingHeartRate < 150)))
+        && (!data.keys().hasAny(['functionalThresholdPace']) || (data.functionalThresholdPace == null || (data.functionalThresholdPace is number && data.functionalThresholdPace >= 0.0 && data.functionalThresholdPace < 1000.0)))
+        && (!data.keys().hasAny(['lactateThresholdHeartRate']) || (data.lactateThresholdHeartRate == null || (data.lactateThresholdHeartRate is int && data.lactateThresholdHeartRate > 25 && data.lactateThresholdHeartRate < 250)))
+        && (!data.keys().hasAny(['gender']) || (data.gender == null || (data.gender is string && (data.gender == 'male' || data.gender == 'female' || data.gender == 'prefer-not-to-say'))))
+        && (!data.keys().hasAny(['weightKg']) || (data.weightKg == null || (data.weightKg is number && data.weightKg > 0.0 && data.weightKg < 500.0)))
+        && (!data.keys().hasAny(['dateOfBirth']) || (data.dateOfBirth == null || data.dateOfBirth is string));
     }
 
     // Normalized Activity Schema Validator
@@ -140,7 +146,7 @@ service cloud.firestore {
       allow create: if isOwnerById(userId) && isValidId(userId) && isValidAthleteProfile(incoming());
       allow update: if isOwnerById(userId) 
                     && isValidAthleteProfile(incoming())
-                    && incoming().userId == existing().userId
+                    && incoming().id == existing().id
                     && incoming().createdAt == existing().createdAt;
       allow delete: if isOwnerById(userId);
     }

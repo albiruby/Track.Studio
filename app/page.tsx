@@ -54,7 +54,7 @@ export default function Page() {
         subtitle="Manage secure performance webhooks and telemetry calibrations"
         footerContent={
           <p className="text-[11px] leading-normal text-muted-foreground">
-            Don't have a secure token? Contact your workspace systems administrator.
+            Don&apos;t have a secure token? Contact your workspace systems administrator.
           </p>
         }
       >

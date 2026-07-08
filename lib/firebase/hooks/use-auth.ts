@@ -7,7 +7,7 @@ import { useFirebase, FirebaseProvider } from '@/providers/firebase-provider';
 export { FirebaseProvider as AuthProvider };
 
 /**
- * Enhanced hook exposing Auth, Session, and Client-side Guards
+ * Standard hook for checking auth, session, and physiological markers
  */
 export function useAuth() {
   const { user, profile, loading, isConfigured, error, loginWithGoogle, logout, updateProfileData } = useFirebase();
@@ -15,24 +15,22 @@ export function useAuth() {
 
   /**
    * Client-side Route Guard. Enforces authentication and optionally redirects.
+   * Defined safely without nested hooks.
    */
   const enforceAuth = (redirectTo = '/login') => {
-    useEffect(() => {
-      if (!loading && !user && isConfigured) {
-        router.push(redirectTo);
-      }
-    }, [user, loading, isConfigured, router, redirectTo]);
+    if (!loading && !user && isConfigured) {
+      router.push(redirectTo);
+    }
   };
 
   /**
    * Client-side Guest Guard. Enforces that logged-in users cannot access guest pages (e.g. login).
+   * Defined safely without nested hooks.
    */
   const enforceGuest = (redirectTo = '/') => {
-    useEffect(() => {
-      if (!loading && user && isConfigured) {
-        router.push(redirectTo);
-      }
-    }, [user, loading, isConfigured, router, redirectTo]);
+    if (!loading && user && isConfigured) {
+      router.push(redirectTo);
+    }
   };
 
   /**
@@ -65,4 +63,32 @@ export function useAuth() {
     enforceAuth,
     enforceGuest,
   };
+}
+
+/**
+ * Standalone Client-side Route Guard custom hook. Enforces authentication and redirects on state changes.
+ */
+export function useEnforceAuth(redirectTo = '/login') {
+  const { user, loading, isConfigured } = useFirebase();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user && isConfigured) {
+      router.push(redirectTo);
+    }
+  }, [user, loading, isConfigured, router, redirectTo]);
+}
+
+/**
+ * Standalone Client-side Guest Guard custom hook. Enforces that logged-in users cannot access guest pages.
+ */
+export function useEnforceGuest(redirectTo = '/') {
+  const { user, loading, isConfigured } = useFirebase();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user && isConfigured) {
+      router.push(redirectTo);
+    }
+  }, [user, loading, isConfigured, router, redirectTo]);
 }

@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DashboardState, DashboardPreferences, LayoutDensity, DashboardRegistryEntry, WidgetRegistryEntry } from '@/types/dashboard';
 import { DASHBOARD_REGISTRY, WIDGET_REGISTRY } from '@/lib/dashboard/registry';
 import { useToast } from '@/components/ui/toast';
+import { useWorkspace } from '@/providers/workspace-provider';
+import { registerAllLibraryWidgets } from '@/components/widget/widget-factory-registration';
 
 interface DashboardContextType {
   activeDashboardId: string;
@@ -34,11 +36,154 @@ const DEFAULT_PREFERENCES: DashboardPreferences = {
 
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
+  const { activeAthlete } = useWorkspace();
   const [activeDashboardId, setActiveDashboardId] = useState<string>('dashboard');
   const [dashboardState, setDashboardState] = useState<DashboardState>('Loading');
   const [lastRefreshedAt, setLastRefreshedAt] = useState<string | null>(null);
   const [viewModels, setViewModels] = useState<Record<string, any>>({});
   const [preferences, setPreferences] = useState<DashboardPreferences>(DEFAULT_PREFERENCES);
+
+  // Initialize and register all library widgets on mount
+  useEffect(() => {
+    registerAllLibraryWidgets();
+  }, []);
+
+  // Sync ViewModels dynamically to active athlete context changes
+  useEffect(() => {
+    if (!activeAthlete) return;
+
+    const homeDashboardVM = {
+      profile: {
+        id: activeAthlete.id,
+        name: activeAthlete.name,
+        email: activeAthlete.email,
+        gender: activeAthlete.gender,
+        weightKg: activeAthlete.weightKg,
+        restingHr: activeAthlete.restingHr,
+        maxHr: activeAthlete.maxHr,
+        ftpWatts: activeAthlete.ftpWatts,
+        vo2max: activeAthlete.vo2max,
+        avatarUrl: activeAthlete.avatarUrl,
+        calculatedThresholds: {
+          restingPace: '8:30/km',
+          aerobicThresholdPace: '6:15/km',
+          lactateThresholdPace: '4:45/km'
+        }
+      },
+      recentActivity: {
+        id: 'recent_act_1',
+        title: 'Aerobic Threshold Tempo Run',
+        sportType: 'run',
+        distanceMeters: 10000,
+        durationSeconds: 2980,
+        averageHeartRate: Math.round(activeAthlete.restingHr + 106),
+        maxHeartRate: activeAthlete.maxHr - 16,
+        averagePace: '4:58',
+        runningStressScore: 78,
+        intensityFactor: 0.85,
+        efficiencyFactor: 1.62,
+        aerobicDecoupling: 0.038,
+        source: 'strava',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+        isCalibrated: true
+      },
+      weeklySummary: {
+        currentWeekDistanceKm: 42.6,
+        currentWeekDurationMinutes: 215,
+        currentWeekRss: 295,
+        targetDistanceKm: 60.0,
+        targetRss: 420,
+        variancePercent: -28.9,
+        dailyBreakdown: [
+          { day: 'Mon', distanceKm: 8.2, rss: 55 },
+          { day: 'Tue', distanceKm: 0.0, rss: 0 },
+          { day: 'Wed', distanceKm: 12.4, rss: 92 },
+          { day: 'Thu', distanceKm: 0.0, rss: 0 },
+          { day: 'Fri', distanceKm: 10.0, rss: 78 },
+          { day: 'Sat', distanceKm: 12.0, rss: 70 },
+          { day: 'Sun', distanceKm: 0.0, rss: 0 }
+        ]
+      },
+      performanceMetrics: {
+        currentCtl: 72.4,
+        currentAtl: 85.8,
+        currentTsb: -13.4,
+        ctlRampRate: 4.8,
+        overtrainingRisk: 'moderate',
+        peakingState: 'optimal'
+      }
+    };
+
+    const performanceOverviewVM = [
+      { date: 'Jun 10', ctl: 62.0, atl: 68.0, tsb: -6.0 },
+      { date: 'Jun 15', ctl: 64.5, atl: 72.0, tsb: -7.5 },
+      { date: 'Jun 20', ctl: 66.8, atl: 78.5, tsb: -11.7 },
+      { date: 'Jun 25', ctl: 68.2, atl: 81.0, tsb: -12.8 },
+      { date: 'Jun 30', ctl: 70.1, atl: 84.4, tsb: -14.3 },
+      { date: 'Jul 05', ctl: 72.4, atl: 85.8, tsb: -13.4 }
+    ];
+
+    const activitySummaryVM = {
+      activities: [
+        {
+          id: 'run_1',
+          title: 'Tempo Threshold Session',
+          date: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+          distanceKm: 10.00,
+          duration: '49:40',
+          pace: '4:58',
+          rss: 78,
+          status: 'synced'
+        },
+        {
+          id: 'run_2',
+          title: 'Aerobic Base Overload',
+          date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+          distanceKm: 12.40,
+          duration: '1:10:15',
+          pace: '5:40',
+          rss: 92,
+          status: 'synced'
+        },
+        {
+          id: 'run_3',
+          title: 'Recovery Strides Active',
+          date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
+          distanceKm: 8.20,
+          duration: '45:10',
+          pace: '5:30',
+          rss: 55,
+          status: 'synced'
+        },
+        {
+          id: 'run_4',
+          title: 'Interval Lactate Ingestion',
+          date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
+          distanceKm: 15.00,
+          duration: '1:04:15',
+          pace: '4:17',
+          rss: 140,
+          status: 'pending'
+        },
+        {
+          id: 'run_5',
+          title: 'Spike Noise Gaps Run',
+          date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(),
+          distanceKm: 6.50,
+          duration: '32:00',
+          pace: '4:55',
+          rss: 48,
+          status: 'corrupt'
+        }
+      ]
+    };
+
+    setViewModels({
+      HomeDashboardViewModel: homeDashboardVM,
+      PerformanceOverviewViewModel: performanceOverviewVM,
+      ActivitySummaryViewModel: activitySummaryVM
+    });
+  }, [activeAthlete]);
 
   // Read preferences from localStorage on mount (for persistent dashboard configurations)
   useEffect(() => {
