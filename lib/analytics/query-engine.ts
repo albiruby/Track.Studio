@@ -183,6 +183,56 @@ export class AnalyticsQueryEngine {
     return this.context?.decisions || [];
   }
 
+  // Dynamic metrics and decisions compiler
+  private async computeMetricsAndDecisions(
+    athleteId: string,
+    athlete: CanonicalAthlete | null,
+    activities: CanonicalActivity[]
+  ): Promise<{ metrics: ComputedMetric[]; decisions: Decision[] }> {
+    if (this.context?.metrics && this.context.metrics.length > 0) {
+      return {
+        metrics: this.context.metrics,
+        decisions: this.context.decisions || []
+      };
+    }
+
+    if (!athlete || activities.length === 0) {
+      return { metrics: [], decisions: [] };
+    }
+
+    try {
+      const { MetricEngine } = await import('@/lib/metrics/engine');
+      const { DecisionEngine } = await import('@/lib/decision-engine/engine');
+
+      const singleMetrics: ComputedMetric[] = [];
+      for (const act of activities) {
+        const computed = MetricEngine.evaluateActivity({
+          activity: act,
+          athlete
+        });
+        singleMetrics.push(...computed);
+      }
+
+      const trendMetrics = MetricEngine.evaluateAthleteHistory({
+        history: activities,
+        athlete
+      });
+
+      const metrics = [...singleMetrics, ...trendMetrics];
+
+      const decisions = DecisionEngine.evaluate({
+        athlete,
+        metrics,
+        history: activities
+      });
+
+      return { metrics, decisions };
+    } catch (err) {
+      console.error('[AnalyticsQueryEngine] Failed to dynamically compute metrics/decisions:', err);
+      return { metrics: [], decisions: [] };
+    }
+  }
+
   /**
    * 1. Home Dashboard Query
    */
@@ -201,8 +251,7 @@ export class AnalyticsQueryEngine {
     if (!athlete) throw new Error(`Athlete with ID ${athleteId} not found.`);
 
     const activities = await this.getActivities(athleteId);
-    const metrics = this.getMetrics();
-    const decisions = this.getDecisions();
+    const { metrics, decisions } = await this.computeMetricsAndDecisions(athleteId, athlete, activities);
     const connections = await this.getConnections(athleteId);
     const syncAttempts = await this.getSyncHistory(athleteId);
 
@@ -233,9 +282,9 @@ export class AnalyticsQueryEngine {
     const cached = AnalyticsCache.get<PerformanceOverviewViewModel>(cacheKey, policy);
     if (cached) return cached;
 
+    const athlete = await this.getAthlete(athleteId);
     const activities = await this.getActivities(athleteId);
-    const metrics = this.getMetrics();
-    const decisions = this.getDecisions();
+    const { metrics, decisions } = await this.computeMetricsAndDecisions(athleteId, athlete, activities);
 
     const model = PerformanceOverviewViewBuilder.build(
       athleteId,
@@ -280,8 +329,9 @@ export class AnalyticsQueryEngine {
 
     if (!activity) return null;
 
-    const metrics = this.getMetrics();
-    const decisions = this.getDecisions();
+    const athlete = await this.getAthlete(userId);
+    const activities = await this.getActivities(userId);
+    const { metrics, decisions } = await this.computeMetricsAndDecisions(userId, athlete, activities);
 
     // Fetch related details
     let splits: CanonicalSplit[] = [];
@@ -326,14 +376,14 @@ export class AnalyticsQueryEngine {
     weekStart: string,
     weekEnd: string
   ): Promise<WeeklyTrainingViewModel> {
+    const athlete = await this.getAthlete(athleteId);
     const activities = await this.getActivities(athleteId);
     const filtered = activities.filter(a => {
       const d = new Date(a.startDate);
       return d >= new Date(weekStart) && d <= new Date(weekEnd);
     });
 
-    const metrics = this.getMetrics();
-    const decisions = this.getDecisions();
+    const { metrics, decisions } = await this.computeMetricsAndDecisions(athleteId, athlete, activities);
 
     return WeeklyTrainingViewBuilder.build(
       athleteId,
@@ -352,9 +402,10 @@ export class AnalyticsQueryEngine {
     athleteId: string,
     monthString: string
   ): Promise<MonthlyTrainingViewModel> {
+    const athlete = await this.getAthlete(athleteId);
     const activities = await this.getActivities(athleteId);
     const filtered = activities.filter(a => a.startDate.startsWith(monthString));
-    const decisions = this.getDecisions();
+    const { decisions } = await this.computeMetricsAndDecisions(athleteId, athlete, activities);
 
     return MonthlyTrainingViewBuilder.build(
       athleteId,
@@ -373,7 +424,7 @@ export class AnalyticsQueryEngine {
     const maxHr = athlete?.maxHeartRateBpm ?? 190;
 
     const activities = await this.getActivities(athleteId);
-    const metrics = this.getMetrics();
+    const { metrics } = await this.computeMetricsAndDecisions(athleteId, athlete, activities);
 
     return HeartRateOverviewViewBuilder.build(
       athleteId,
@@ -390,7 +441,8 @@ export class AnalyticsQueryEngine {
   public async queryPowerOverview(athleteId: string): Promise<PowerOverviewViewModel> {
     const athlete = await this.getAthlete(athleteId);
     const ftp = athlete?.ftpWatts ?? 250;
-    const metrics = this.getMetrics();
+    const activities = await this.getActivities(athleteId);
+    const { metrics } = await this.computeMetricsAndDecisions(athleteId, athlete, activities);
 
     return PowerOverviewViewBuilder.build(athleteId, ftp, metrics);
   }
@@ -407,7 +459,9 @@ export class AnalyticsQueryEngine {
    * 10. Training Load Overview Query
    */
   public async queryTrainingLoadOverview(athleteId: string): Promise<TrainingLoadOverviewViewModel> {
-    const metrics = this.getMetrics();
+    const athlete = await this.getAthlete(athleteId);
+    const activities = await this.getActivities(athleteId);
+    const { metrics } = await this.computeMetricsAndDecisions(athleteId, athlete, activities);
     return TrainingLoadOverviewViewBuilder.build(athleteId, metrics);
   }
 
@@ -415,7 +469,9 @@ export class AnalyticsQueryEngine {
    * 11. Recovery Overview Query
    */
   public async queryRecoveryOverview(athleteId: string): Promise<RecoveryOverviewViewModel> {
-    const metrics = this.getMetrics();
+    const athlete = await this.getAthlete(athleteId);
+    const activities = await this.getActivities(athleteId);
+    const { metrics } = await this.computeMetricsAndDecisions(athleteId, athlete, activities);
     return RecoveryOverviewViewBuilder.build(athleteId, metrics);
   }
 
@@ -448,8 +504,9 @@ export class AnalyticsQueryEngine {
    * 15. Data Health Query
    */
   public async queryDataHealth(athleteId: string): Promise<DataHealthViewModel> {
+    const athlete = await this.getAthlete(athleteId);
     const activities = await this.getActivities(athleteId);
-    const metrics = this.getMetrics();
+    const { metrics } = await this.computeMetricsAndDecisions(athleteId, athlete, activities);
     return DataHealthViewBuilder.build(athleteId, activities, metrics);
   }
 

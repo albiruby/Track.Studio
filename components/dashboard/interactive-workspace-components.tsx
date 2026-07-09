@@ -1516,7 +1516,7 @@ export function SportsScienceLaboratoryPortal() {
                     </div>
                     <div className="flex justify-between border-b border-border/30 pb-1.5">
                       <span className="text-muted-foreground">Reporting Cycle:</span>
-                      <span className="font-bold text-foreground">Active {filters.dateRange.toUpperCase()} Isolate</span>
+                      <span className="font-bold text-foreground">Active {activeReportType.toUpperCase()} Isolate</span>
                     </div>
                     <div className="flex justify-between border-b border-border/30 pb-1.5">
                       <span className="text-muted-foreground">Mean Cardiac Decoupling:</span>
