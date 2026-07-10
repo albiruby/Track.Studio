@@ -6,7 +6,7 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "npx tsx ./lib/dashboard/tests/run-dashboard-tests.ts && npx tsx ./lib/widget/tests/run-widget-platform-tests.ts && npx tsx ./lib/dashboard/composition/tests/run-composition-tests.ts && npx tsx ./lib/visualization/tests/run-visualization-tests.ts"
   },
   "dependencies": {

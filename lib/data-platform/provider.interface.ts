@@ -34,3 +34,18 @@ export interface IIntegrationProviderService {
     metadata: Record<string, any>;
   }>;
 }
+
+export interface IIntegrationProvider {
+  providerId: string;
+  connect(userId: string, authParams?: Record<string, any>): Promise<any>;
+  disconnect(userId: string): Promise<void>;
+  sync(userId: string, jobId: string): Promise<any>;
+  validate(userId: string): Promise<{ valid: boolean; error?: string }>;
+  fetchActivities(userId: string, params?: Record<string, any>): Promise<any[]>;
+  fetchStreams(userId: string, activityId: string): Promise<any>;
+  fetchLaps(userId: string, activityId: string): Promise<any[]>;
+  fetchEquipment(userId: string): Promise<any[]>;
+  fetchRoutes(userId: string): Promise<any[]>;
+  getSyncStatus(userId: string): Promise<any>;
+}
+

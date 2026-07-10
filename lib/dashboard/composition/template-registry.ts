@@ -39,6 +39,7 @@ const layoutTemplateMap: Record<string, LayoutType> = {
 
 // Populate the template registry dynamically based on the 15 registered dashboards
 Object.entries(DASHBOARD_REGISTRY).forEach(([id, entry]) => {
+  if (id === 'activity_analysis') return; // Skip report template, which is a standalone layout and not a widget-based dashboard
   const layoutType = layoutTemplateMap[entry.layoutTemplate] || 'grid';
   
   // Set default sizes based on widgets

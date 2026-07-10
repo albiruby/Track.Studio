@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 
 export interface WorkspaceFilters {
   activityType: 'all' | 'road_run' | 'trail_run' | string;
@@ -57,6 +57,55 @@ export function InteractiveWorkspaceProvider({ children }: { children: ReactNode
     blockA: 'Block A: Base Phase',
     blockB: 'Block B: Build Phase'
   });
+
+  // Hydrate from localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const persistedStoryTab = localStorage.getItem('track_studio_story_tab');
+      if (persistedStoryTab !== null) setStoryTab(persistedStoryTab);
+
+      const persistedActivityId = localStorage.getItem('track_studio_selected_activity_id');
+      if (persistedActivityId !== null) setSelectedActivityId(persistedActivityId);
+
+      const persistedFilters = localStorage.getItem('track_studio_filters');
+      if (persistedFilters !== null) setFilters(JSON.parse(persistedFilters));
+
+      const persistedComparison = localStorage.getItem('track_studio_comparison');
+      if (persistedComparison !== null) setComparison(JSON.parse(persistedComparison));
+    } catch (e) {
+      console.error('Failed to load local interactive workspace state', e);
+    }
+  }, []);
+
+  // Save changes to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('track_studio_story_tab', storyTab);
+    }
+  }, [storyTab]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (selectedActivityId) {
+        localStorage.setItem('track_studio_selected_activity_id', selectedActivityId);
+      } else {
+        localStorage.removeItem('track_studio_selected_activity_id');
+      }
+    }
+  }, [selectedActivityId]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('track_studio_filters', JSON.stringify(filters));
+    }
+  }, [filters]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('track_studio_comparison', JSON.stringify(comparison));
+    }
+  }, [comparison]);
 
   const isFilterActive = useMemo(() => {
     return filters.activityType !== 'all' || 

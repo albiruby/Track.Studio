@@ -289,6 +289,7 @@ export function PerformanceStorytellingSelector() {
   const tabs = [
     { key: 'workspace', label: 'Telemetry Workspace', icon: Grid, color: 'text-primary' },
     { key: 'science-lab', label: '🔬 Sports Science Lab', icon: Anchor, color: 'text-[#FF6B00]' },
+    { key: 'analytics-lab', label: '🧪 Analytics Lab', icon: BarChart3, color: 'text-indigo-500' },
     { key: 'fitness', label: 'Fitness Adaptation', icon: TrendingUp, color: 'text-emerald-500' },
     { key: 'recovery', label: 'Recovery Kinetics', icon: Heart, color: 'text-rose-500' },
     { key: 'training', label: 'Volume Density', icon: CalendarDays, color: 'text-sky-500' },

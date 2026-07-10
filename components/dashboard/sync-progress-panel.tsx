@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getFirebaseFirestore } from '@/lib/firebase/config';
 import { doc, onSnapshot, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { getProviderById } from '@/lib/data-platform/registry';
 import { SyncJob, IngestionErrorRecord, AuditLogRecord } from '@/lib/data-platform/ingestion/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -213,7 +214,7 @@ export function SyncProgressPanel({ userId, providerId, onClose }: SyncProgressP
         <div>
           <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest leading-none">Ingestion Controller</span>
           <h4 className="text-xs font-bold uppercase text-foreground mt-0.5">
-            {providerId === 'strava' ? 'Strava' : 'Intervals.icu'} Handshake & Sync
+            {getProviderById(providerId)?.name || providerId} Handshake & Sync
           </h4>
         </div>
         <div className="flex gap-1.5 font-mono text-[9px]">

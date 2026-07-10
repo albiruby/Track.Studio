@@ -14,6 +14,7 @@ import { EmptyWorkspaceLayout } from '@/components/layouts/empty-workspace-layou
 import { PrintLayout } from '@/components/layouts/print-layout';
 import { Button } from '@/components/ui/button';
 import { CardLoader, TableLoader, ChartPlaceholder } from '@/components/ui/loading-skeletons';
+import { cn } from '@/lib/utils';
 import { 
   Flame, 
   Activity, 
@@ -360,208 +361,247 @@ function WorkspaceDashboardView({
     ? new Date(lastRefreshedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' UTC'
     : '12:45 UTC';
 
+  // Standardized High-Density KPI Card Renderer for Phase 21
+  const renderKpiCard = (args: {
+    title: string;
+    subtitle: string;
+    value: string;
+    unit?: string;
+    trend: string;
+    trendUp?: boolean;
+    comparison: string;
+    sparklinePoints: string;
+    sparklineColor: string;
+    goal: string;
+    status: string;
+    statusColor: string;
+    dataAvailability: string;
+    icon: React.ReactNode;
+  }) => {
+    return (
+      <div className="rounded-[10px] border border-border/70 bg-card p-2.5 flex flex-col justify-between shadow-xs hover:border-primary/40 transition-all duration-200 relative overflow-hidden group select-none" id={`kpi-card-${args.title.toLowerCase().replace(/\s+/g, '-')}`}>
+        {/* Title, Icon, Status Indicator */}
+        <div className="flex items-center justify-between gap-1">
+          <div className="flex flex-col min-w-0">
+            <span className="text-[8.5px] font-mono font-bold uppercase tracking-wider text-muted-foreground truncate leading-none">
+              {args.title}
+            </span>
+            <span className="text-[7.5px] text-muted-foreground/60 font-medium truncate mt-0.5 leading-none">
+              {args.subtitle}
+            </span>
+          </div>
+          <div className="text-muted-foreground opacity-80 shrink-0">
+            {args.icon}
+          </div>
+        </div>
+
+        {/* Primary Metric, Trend badge */}
+        <div className="my-1.5 flex items-baseline justify-between gap-1.5">
+          <div className="flex items-baseline gap-0.5">
+            <span className="text-sm font-extrabold tracking-tight text-foreground font-mono leading-none">
+              {args.value}
+            </span>
+            {args.unit && (
+              <span className="text-[7px] text-muted-foreground font-bold uppercase font-mono ml-0.5">
+                {args.unit}
+              </span>
+            )}
+          </div>
+          <div className={cn(
+            "text-[7px] font-mono font-bold px-1 py-0.5 rounded-xs leading-none shrink-0",
+            args.trendUp ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-sky-500/10 text-sky-500 border border-sky-500/20"
+          )}>
+            {args.trend}
+          </div>
+        </div>
+
+        {/* Sparkline & Comparison Row */}
+        <div className="h-6 flex items-center justify-between border-t border-b border-border/30 py-1 my-1">
+          <span className="text-[7px] font-mono text-muted-foreground leading-none">
+            {args.comparison}
+          </span>
+          <svg className={cn("w-10 h-4 shrink-0", args.sparklineColor)} viewBox="0 0 100 50">
+            <path d={args.sparklinePoints} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          </svg>
+        </div>
+
+        {/* Goal, Status Dot & Availability Info */}
+        <div className="flex items-center justify-between text-[7px] font-mono text-muted-foreground mt-0.5">
+          <div className="flex flex-col gap-0.5 leading-none">
+            <span>{args.goal}</span>
+            <span className="text-[6.5px] text-muted-foreground/50">{args.dataAvailability}</span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className={cn("h-1.5 w-1.5 rounded-full", args.statusColor)} />
+            <span className="font-bold text-[6.5px] uppercase tracking-wider">{args.status}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Premium 9-column KPI Strip
   const kpiStrip = (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-2.5 select-none" id="premium-kpi-ribbon">
-      
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-2 select-none" id="premium-kpi-ribbon">
       {/* 1. Weekly Distance */}
-      <div className="rounded-[14px] border border-border/70 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
-        <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">Weekly Dist</span>
-          <Activity className="h-3.5 w-3.5 text-primary" />
-        </div>
-        <div className="my-1">
-          <span className="text-lg font-extrabold tracking-tight text-foreground">{weeklyDist.toFixed(1)}</span>
-          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">km</span>
-          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 18% vs L/W</span>
-        </div>
-        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
-          <div className="text-[8px] font-mono text-muted-foreground">
-            <div>Goal: 50.0 km</div>
-            <div>Progress: {Math.min(100, (weeklyDist / 50) * 100).toFixed(0)}%</div>
-          </div>
-          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
-            <path d="M 0,40 Q 25,10 50,25 T 100,5" fill="none" stroke="currentColor" strokeWidth="2.5" />
-          </svg>
-        </div>
-      </div>
+      {renderKpiCard({
+        title: "Weekly Dist",
+        subtitle: "Accumulated Distance",
+        value: weeklyDist.toFixed(1),
+        unit: "km",
+        trend: "▲ 18.0%",
+        trendUp: true,
+        comparison: "vs last week",
+        sparklinePoints: "M 0,40 Q 25,10 50,25 T 100,5",
+        sparklineColor: "text-emerald-500",
+        goal: "Goal: 50.0 km",
+        status: "BUILDING",
+        statusColor: "bg-emerald-500",
+        dataAvailability: "100% telemetry",
+        icon: <Activity className="h-3.5 w-3.5" />
+      })}
 
       {/* 2. Monthly Distance */}
-      <div className="rounded-[14px] border border-border/70 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
-        <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">Monthly Dist</span>
-          <Compass className="h-3.5 w-3.5 text-primary" />
-        </div>
-        <div className="my-1">
-          <span className="text-lg font-extrabold tracking-tight text-foreground">{monthlyDist.toFixed(1)}</span>
-          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">km</span>
-          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 8.4% vs L/M</span>
-        </div>
-        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
-          <div className="text-[8px] font-mono text-muted-foreground">
-            <div>Goal: 180.0 km</div>
-            <div>Progress: {Math.min(100, (monthlyDist / 180) * 100).toFixed(0)}%</div>
-          </div>
-          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
-            <path d="M 0,35 Q 25,20 50,30 T 100,10" fill="none" stroke="currentColor" strokeWidth="2.5" />
-          </svg>
-        </div>
-      </div>
+      {renderKpiCard({
+        title: "Monthly Dist",
+        subtitle: "Accumulated Distance",
+        value: monthlyDist.toFixed(1),
+        unit: "km",
+        trend: "▲ 8.4%",
+        trendUp: true,
+        comparison: "vs last month",
+        sparklinePoints: "M 0,35 Q 25,20 50,30 T 100,10",
+        sparklineColor: "text-emerald-500",
+        goal: "Goal: 180.0 km",
+        status: "ON TRACK",
+        statusColor: "bg-emerald-500",
+        dataAvailability: "100% telemetry",
+        icon: <Compass className="h-3.5 w-3.5" />
+      })}
 
       {/* 3. Chronic Training Load (CTL) */}
-      <div className="rounded-[14px] border border-border/70 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
-        <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">CTL (Fitness)</span>
-          <Flame className="h-3.5 w-3.5 text-primary" />
-        </div>
-        <div className="my-1">
-          <span className="text-lg font-extrabold tracking-tight text-foreground">{ctl.toFixed(1)}</span>
-          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">TSS</span>
-          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 3.2 vs L/W</span>
-        </div>
-        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
-          <div className="text-[8px] font-mono text-muted-foreground">
-            <div>Target: 75.0</div>
-            <div>Progress: {((ctl / 75) * 100).toFixed(0)}%</div>
-          </div>
-          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
-            <path d="M 0,45 Q 25,30 50,20 T 100,15" fill="none" stroke="currentColor" strokeWidth="2.5" />
-          </svg>
-        </div>
-      </div>
+      {renderKpiCard({
+        title: "CTL (Fitness)",
+        subtitle: "Chronic Training Load",
+        value: ctl.toFixed(1),
+        unit: "TSS",
+        trend: "▲ 3.2%",
+        trendUp: true,
+        comparison: "42d rolling base",
+        sparklinePoints: "M 0,45 Q 25,30 50,20 T 100,15",
+        sparklineColor: "text-emerald-500",
+        goal: "Target: 75.0",
+        status: "STABLE",
+        statusColor: "bg-emerald-500",
+        dataAvailability: "Bannister Engine",
+        icon: <Flame className="h-3.5 w-3.5" />
+      })}
 
       {/* 4. Acute Training Load (ATL) */}
-      <div className="rounded-[14px] border border-border/70 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
-        <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">ATL (Fatigue)</span>
-          <Zap className="h-3.5 w-3.5 text-status-warning" />
-        </div>
-        <div className="my-1">
-          <span className="text-lg font-extrabold tracking-tight text-foreground">{atl.toFixed(1)}</span>
-          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">TSS</span>
-          <span className="text-[8px] text-amber-500 font-mono block mt-0.5">▲ 12.4 vs L/W</span>
-        </div>
-        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
-          <div className="text-[8px] font-mono text-muted-foreground">
-            <div>Limit: 95.0</div>
-            <div>Stress: {((atl / 95) * 100).toFixed(0)}%</div>
-          </div>
-          <svg className="w-8 h-4 text-amber-500 shrink-0" viewBox="0 0 100 50">
-            <path d="M 0,45 Q 25,20 50,35 T 100,5" fill="none" stroke="currentColor" strokeWidth="2.5" />
-          </svg>
-        </div>
-      </div>
+      {renderKpiCard({
+        title: "ATL (Fatigue)",
+        subtitle: "Acute Training Load",
+        value: atl.toFixed(1),
+        unit: "TSS",
+        trend: "▲ 12.4%",
+        trendUp: false,
+        comparison: "7d acute load",
+        sparklinePoints: "M 0,45 Q 25,20 50,35 T 100,5",
+        sparklineColor: "text-amber-500",
+        goal: "Limit: 95.0",
+        status: "STRESSED",
+        statusColor: "bg-amber-500",
+        dataAvailability: "High stress index",
+        icon: <Zap className="h-3.5 w-3.5" />
+      })}
 
       {/* 5. Training Stress Balance (TSB) */}
-      <div className="rounded-[14px] border border-border/80 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
-        <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">TSB (Form)</span>
-          <Heart className="h-3.5 w-3.5 text-status-danger" />
-        </div>
-        <div className="my-1">
-          <span className={`text-lg font-extrabold tracking-tight ${tsb >= 0 ? 'text-status-success' : 'text-sky-500'}`}>
-            {tsb > 0 ? `+${tsb.toFixed(1)}` : tsb.toFixed(1)}
-          </span>
-          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">TSS</span>
-          <span className="text-[8px] text-sky-500 font-mono block mt-0.5">▼ 5.4 Form Balance</span>
-        </div>
-        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
-          <div className="text-[8px] font-mono text-muted-foreground">
-            <div>Zone: Optimal</div>
-            <div>-10 to +5 Zone</div>
-          </div>
-          <svg className="w-8 h-4 text-sky-500 shrink-0" viewBox="0 0 100 50">
-            <path d="M 0,25 Q 25,45 50,20 T 100,30" fill="none" stroke="currentColor" strokeWidth="2.5" />
-          </svg>
-        </div>
-      </div>
+      {renderKpiCard({
+        title: "TSB (Form)",
+        subtitle: "Training Stress Balance",
+        value: tsb > 0 ? `+${tsb.toFixed(1)}` : tsb.toFixed(1),
+        unit: "TSS",
+        trend: "▼ 5.4",
+        trendUp: false,
+        comparison: "Form balance ratio",
+        sparklinePoints: "M 0,25 Q 25,45 50,20 T 100,30",
+        sparklineColor: "text-sky-500",
+        goal: "Zone: Optimal",
+        status: "OPTIMAL",
+        statusColor: "bg-sky-500",
+        dataAvailability: "-10 to +5 Zone",
+        icon: <Heart className="h-3.5 w-3.5" />
+      })}
 
       {/* 6. VO2 Max */}
-      <div className="rounded-[14px] border border-border/80 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
-        <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">VO₂max</span>
-          <Activity className="h-3.5 w-3.5 text-status-success" />
-        </div>
-        <div className="my-1">
-          <span className="text-lg font-extrabold tracking-tight text-foreground">{vo2max}</span>
-          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">ml/kg</span>
-          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 0.8 vs L/M</span>
-        </div>
-        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
-          <div className="text-[8px] font-mono text-muted-foreground">
-            <div>Level: Elite</div>
-            <div>98.4%tile Rank</div>
-          </div>
-          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
-            <path d="M 0,40 Q 25,35 50,15 T 100,10" fill="none" stroke="currentColor" strokeWidth="2.5" />
-          </svg>
-        </div>
-      </div>
+      {renderKpiCard({
+        title: "VO₂max",
+        subtitle: "Aerobic Capacity",
+        value: vo2max.toString(),
+        unit: "ml/kg",
+        trend: "▲ 0.8%",
+        trendUp: true,
+        comparison: "98.4%tile rank",
+        sparklinePoints: "M 0,40 Q 25,35 50,15 T 100,10",
+        sparklineColor: "text-emerald-500",
+        goal: "Level: Elite",
+        status: "OPTIMAL",
+        statusColor: "bg-emerald-500",
+        dataAvailability: "Telemetry verified",
+        icon: <Activity className="h-3.5 w-3.5 text-status-success" />
+      })}
 
       {/* 7. Training Load (RSS) */}
-      <div className="rounded-[14px] border border-border/80 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
-        <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">Training Load</span>
-          <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-        </div>
-        <div className="my-1">
-          <span className="text-lg font-extrabold tracking-tight text-foreground">{weeklyRss}</span>
-          <span className="text-[9px] text-muted-foreground font-medium ml-0.5">/ {targetRss} RSS</span>
-          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 4.8% Progression</span>
-        </div>
-        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
-          <div className="text-[8px] font-mono text-muted-foreground">
-            <div>Goal: 420 RSS</div>
-            <div>Progress: {((weeklyRss / targetRss) * 100).toFixed(0)}%</div>
-          </div>
-          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
-            <path d="M 0,40 Q 25,25 50,35 T 100,15" fill="none" stroke="currentColor" strokeWidth="2.5" />
-          </svg>
-        </div>
-      </div>
+      {renderKpiCard({
+        title: "Training Load",
+        subtitle: "Total Weekly Stress",
+        value: weeklyRss.toString(),
+        unit: "RSS",
+        trend: "▲ 4.8%",
+        trendUp: true,
+        comparison: "vs Target stress",
+        sparklinePoints: "M 0,40 Q 25,25 50,35 T 100,15",
+        sparklineColor: "text-emerald-500",
+        goal: `Goal: ${targetRss} RSS`,
+        status: "BUILDING",
+        statusColor: "bg-emerald-500",
+        dataAvailability: "Calculated from HR",
+        icon: <Lock className="h-3.5 w-3.5" />
+      })}
 
       {/* 8. Data Quality */}
-      <div className="rounded-[14px] border border-border/80 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
-        <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">Data Quality</span>
-          <FileCheck className="h-3.5 w-3.5 text-status-info" />
-        </div>
-        <div className="my-1">
-          <span className="text-lg font-extrabold tracking-tight text-foreground">{dataQuality.toFixed(1)}%</span>
-          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">▲ 0.2% vs L/W</span>
-        </div>
-        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
-          <div className="text-[8px] font-mono text-muted-foreground">
-            <div>Goal: 100.0%</div>
-            <div>Fidelity Stable</div>
-          </div>
-          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
-            <path d="M 0,20 Q 25,22 50,20 T 100,10" fill="none" stroke="currentColor" strokeWidth="2.5" />
-          </svg>
-        </div>
-      </div>
+      {renderKpiCard({
+        title: "Data Quality",
+        subtitle: "Sensor Fidelity",
+        value: dataQuality.toFixed(1) + "%",
+        trend: "▲ 0.2%",
+        trendUp: true,
+        comparison: "vs last week",
+        sparklinePoints: "M 0,20 Q 25,22 50,20 T 100,10",
+        sparklineColor: "text-emerald-500",
+        goal: "Goal: 100.0%",
+        status: "SECURED",
+        statusColor: "bg-emerald-500",
+        dataAvailability: "99.8% sync locks",
+        icon: <FileCheck className="h-3.5 w-3.5" />
+      })}
 
       {/* 9. Last Sync */}
-      <div className="rounded-[14px] border border-border/80 bg-card p-3 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-primary/40 transition-all duration-200 group cursor-pointer relative overflow-hidden">
-        <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono font-bold uppercase text-muted-foreground tracking-wider">Last Sync</span>
-          <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
-        </div>
-        <div className="my-1">
-          <span className="text-lg font-extrabold tracking-tight text-foreground">{formattedSyncTime}</span>
-          <span className="text-[8px] text-emerald-500 font-mono block mt-0.5">Sync Active</span>
-        </div>
-        <div className="border-t border-border/40 pt-1.5 mt-1 flex items-center justify-between">
-          <div className="text-[8px] font-mono text-muted-foreground">
-            <div>Durable Inbound</div>
-            <div>Handshake Verified</div>
-          </div>
-          <svg className="w-8 h-4 text-emerald-500 shrink-0" viewBox="0 0 100 50">
-            <path d="M 0,35 Q 25,40 50,25 T 100,5" fill="none" stroke="currentColor" strokeWidth="2.5" />
-          </svg>
-        </div>
-      </div>
-
+      {renderKpiCard({
+        title: "Last Sync",
+        subtitle: "Inbound Webhooks",
+        value: formattedSyncTime,
+        trend: "SYNCED",
+        trendUp: true,
+        comparison: "API active",
+        sparklinePoints: "M 0,35 Q 25,40 50,25 T 100,5",
+        sparklineColor: "text-emerald-500",
+        goal: "Strava & ICU",
+        status: "STABLE",
+        statusColor: "bg-emerald-500",
+        dataAvailability: "Durable handshake",
+        icon: <RefreshCw className="h-3.5 w-3.5" />
+      })}
     </div>
   );
 

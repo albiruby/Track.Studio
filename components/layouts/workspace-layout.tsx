@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/firebase/hooks/use-auth';
 import { useTheme } from '@/providers/theme-provider';
+import { useToast } from '@/components/ui/toast';
 import { useWorkspace, WorkspaceNotification, AthleteProfile } from '@/providers/workspace-provider';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -50,6 +51,8 @@ import {
   Activity
 } from 'lucide-react';
 import Image from 'next/image';
+import { useInteractiveWorkspace } from '@/providers/interactive-workspace-provider';
+import { PHYSIOLOGICAL_DATASET } from '@/components/dashboard/interactive-workspace-components';
 
 interface WorkspaceLayoutProps {
   title: string;
@@ -181,10 +184,77 @@ export function WorkspaceLayout({
     loadingMessage,
     isSidePanelOpen,
     setSidePanelOpen,
+    setSidePanelContent,
     isFiltersOpen,
     setFiltersOpen,
     setLoadingProgress,
   } = useWorkspace();
+
+  const { selectedActivityId, setSelectedActivityId, storyTab, setStoryTab } = useInteractiveWorkspace();
+  const activeActivity = PHYSIOLOGICAL_DATASET.find(act => act.id === selectedActivityId);
+  const activeActivityName = activeActivity ? activeActivity.title : 'Morning Long Run';
+
+  const { toast } = useToast();
+
+  // Global Keyboard Shortcuts (Ctrl+K, Ctrl+F, Ctrl+E, Alt+1-9, ESC)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // 1. Ctrl + K / Ctrl + Shift + P: Toggle Command Palette
+      if (e.ctrlKey && (e.key.toLowerCase() === 'k' || (e.shiftKey && e.key.toLowerCase() === 'p'))) {
+        e.preventDefault();
+        setCommandPaletteOpen(prev => !prev);
+      }
+
+      // 2. Ctrl + F: Focus Search (opens Command Palette with focus)
+      if (e.ctrlKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+      }
+
+      // 3. Ctrl + E: Trigger Export Views
+      if (e.ctrlKey && e.key.toLowerCase() === 'e') {
+        e.preventDefault();
+        toast({
+          title: 'Exporting Diagnostic Stream',
+          description: 'Generating raw telemetry package export...',
+        });
+        const blob = new Blob([JSON.stringify({ exportTime: new Date().toISOString(), system: 'Track.Studio', data: PHYSIOLOGICAL_DATASET }, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `track-studio-keyboard-export-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      // 4. Alt + 1-8: Storytelling tab switching
+      if (e.altKey && e.key >= '1' && e.key <= '8') {
+        e.preventDefault();
+        const tabKeys = ['workspace', 'science-lab', 'analytics-lab', 'fitness', 'recovery', 'training', 'aerobic', 'threshold'];
+        const index = parseInt(e.key) - 1;
+        if (tabKeys[index]) {
+          setStoryTab(tabKeys[index]);
+          window.location.hash = '#dashboard';
+          toast({
+            title: 'Storytelling View Switch',
+            description: `Switched perspective to ${tabKeys[index].replace('-', ' ').toUpperCase()}`,
+          });
+        }
+      }
+
+      // 5. ESC: Closes any active drawer/side panel/modal
+      if (e.key === 'Escape') {
+        setSidePanelOpen(false);
+        setFiltersOpen(false);
+        setMobileMenuOpen(false);
+        setCommandPaletteOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [setCommandPaletteOpen, setStoryTab, setSidePanelOpen, setFiltersOpen, toast]);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
@@ -204,6 +274,15 @@ export function WorkspaceLayout({
       addRecentPage(activeRouteId, navItem.label);
     }
   }, [activeRouteId]);
+
+  // Synchronize Inspect Panel Content with active view & selection
+  useEffect(() => {
+    if (isSidePanelOpen) {
+      setSidePanelContent(
+        <SideInspectPanel routeId={activeRouteId} activeActivityName={activeActivityName} />
+      );
+    }
+  }, [activeRouteId, selectedActivityId, isSidePanelOpen, activeActivityName, setSidePanelContent]);
 
   // Handle outside click closures
   useEffect(() => {
@@ -400,26 +479,7 @@ export function WorkspaceLayout({
                 <ChevronRight className="h-4 w-4" />
               </Button>
             ) : (
-              <div className="flex flex-col gap-2.5">
-                {/* Synced Status Widget from Bauhaus mockup */}
-                <div className="p-3 bg-status-success/5 rounded-2xl border border-status-success/15 flex flex-col gap-2 relative group hover:bg-status-success/10 transition-colors duration-300">
-                  <div className="flex items-center gap-2">
-                    <div className="h-5 w-5 rounded-full bg-status-success/20 flex items-center justify-center text-status-success shrink-0">
-                      <Check className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] font-bold text-foreground leading-none">Data Synced</span>
-                      <span className="text-[8px] text-muted-foreground font-medium mt-0.5">Just now</span>
-                    </div>
-                  </div>
-                  {/* Row of green progress indicators */}
-                  <div className="flex gap-0.5 mt-1">
-                    {Array.from({ length: 16 }).map((_, i) => (
-                      <div key={i} className="h-1 flex-1 bg-status-success rounded-xs" />
-                    ))}
-                  </div>
-                </div>
-
+              <div className="flex flex-col gap-2">
                 {/* Sub-footer containing shortcut info and the code icon toggle */}
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground px-1 select-none">
                   <span className="font-medium">Press <kbd className="font-sans px-1 bg-muted border border-border rounded text-[8px]">Ctrl</kbd> + <kbd className="font-sans px-1 bg-muted border border-border rounded text-[8px]">/</kbd></span>
@@ -471,10 +531,32 @@ export function WorkspaceLayout({
               </Button>
 
               {/* Breadcrumb Indicator */}
-              <nav className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground font-medium" aria-label="Breadcrumbs" id="breadcrumb-navigation">
-                <span className="font-semibold text-foreground tracking-tight">Track.Studio</span>
-                <ChevronRight className="h-3 w-3" />
-                <span className="capitalize">{activeRouteId.replace('_', ' ')}</span>
+              <nav className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground font-medium select-none" aria-label="Breadcrumbs" id="breadcrumb-navigation">
+                <button 
+                  onClick={() => { window.location.hash = '#dashboard'; }}
+                  className="font-bold text-foreground hover:text-primary transition-all cursor-pointer tracking-tight bg-transparent border-0 p-0 outline-none focus:text-primary"
+                >
+                  Track.Studio
+                </button>
+                {activeRouteId !== 'dashboard' && (
+                  <>
+                    <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
+                    <button 
+                      onClick={() => { window.location.hash = `#${activeRouteId}`; }}
+                      className="capitalize font-semibold text-muted-foreground hover:text-foreground transition-all cursor-pointer bg-transparent border-0 p-0 outline-none focus:text-foreground"
+                    >
+                      {activeRouteId.replace('_', ' ')}
+                    </button>
+                  </>
+                )}
+                {activeRouteId === 'activity_analysis' && selectedActivityId && (
+                  <>
+                    <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
+                    <span className="font-mono font-bold text-[10px] text-[#FF6B00] bg-[#FF6B00]/10 border border-[#FF6B00]/15 rounded-md px-2 py-0.5 shadow-xs">
+                      {activeActivityName}
+                    </span>
+                  </>
+                )}
               </nav>
             </div>
 
@@ -728,38 +810,81 @@ export function WorkspaceLayout({
                       <div className="space-y-0.5 pt-1 text-xs">
                         <button
                           onClick={() => {
-                            setImportModalOpen(true);
+                            triggerSync();
                             setQuickActionsOpen(false);
                           }}
                           className="w-full text-left flex items-center gap-2.5 px-2.5 py-1.5 rounded hover:bg-secondary/40 text-muted-foreground hover:text-foreground cursor-pointer"
                         >
-                          <FileDown className="h-4 w-4 text-status-info" />
-                          <span>Import JSON Activity</span>
+                          <RefreshCw className="h-4 w-4 text-status-warning" />
+                          <span>Refresh Telemetry Sync</span>
                         </button>
                         <button
                           onClick={() => {
-                            // Clear cache simulator
-                            setLoading(true);
-                            setTimeout(() => {
-                              setLoading(false);
-                              triggerSync();
-                            }, 1000);
+                            setComparison(prev => ({ ...prev, enabled: !prev.enabled }));
+                            window.location.hash = '#compare';
                             setQuickActionsOpen(false);
                           }}
                           className="w-full text-left flex items-center gap-2.5 px-2.5 py-1.5 rounded hover:bg-secondary/40 text-muted-foreground hover:text-foreground cursor-pointer"
                         >
-                          <SlidersHorizontal className="h-4 w-4 text-status-warning" />
-                          <span>Purge Cache & Re-sync</span>
+                          <GitCompare className="h-4 w-4 text-status-info" />
+                          <span>Toggle Split Compare</span>
                         </button>
                         <button
                           onClick={() => {
-                            setCompactMode(!isCompactMode);
+                            setQuickActionsOpen(false);
+                            const blob = new Blob([JSON.stringify({ exportTime: new Date().toISOString(), system: 'Track.Studio', data: PHYSIOLOGICAL_DATASET }, null, 2)], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `track-studio-quick-export-${Date.now()}.json`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            toast({
+                              title: 'Export Created',
+                              description: 'Raw payload successfully compiled and downloaded.',
+                            });
+                          }}
+                          className="w-full text-left flex items-center gap-2.5 px-2.5 py-1.5 rounded hover:bg-secondary/40 text-muted-foreground hover:text-foreground cursor-pointer"
+                        >
+                          <FileDown className="h-4 w-4 text-status-success" />
+                          <span>Export View Payload</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSidePanelOpen(!isSidePanelOpen);
                             setQuickActionsOpen(false);
                           }}
                           className="w-full text-left flex items-center gap-2.5 px-2.5 py-1.5 rounded hover:bg-secondary/40 text-muted-foreground hover:text-foreground cursor-pointer"
                         >
-                          <SlidersHorizontal className="h-4 w-4 text-status-success" />
-                          <span>Toggle Dense View</span>
+                          <Search className="h-4 w-4 text-primary" />
+                          <span>{isSidePanelOpen ? 'Close Inspect Panel' : 'Inspect Active View'}</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            toggleFavorite(activeRouteId);
+                            setQuickActionsOpen(false);
+                          }}
+                          className="w-full text-left flex items-center gap-2.5 px-2.5 py-1.5 rounded hover:bg-secondary/40 text-muted-foreground hover:text-foreground cursor-pointer"
+                        >
+                          <Star className={cn("h-4 w-4", favorites.includes(activeRouteId) ? "text-amber-500 fill-amber-500" : "text-muted-foreground")} />
+                          <span>{favorites.includes(activeRouteId) ? 'Unpin Current View' : 'Pin View to Quicklinks'}</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (typeof window !== 'undefined') {
+                              navigator.clipboard.writeText(window.location.href);
+                              toast({
+                                title: 'Share Link Copied',
+                                description: 'Active workspace location URL successfully written to clipboard.',
+                              });
+                            }
+                            setQuickActionsOpen(false);
+                          }}
+                          className="w-full text-left flex items-center gap-2.5 px-2.5 py-1.5 rounded hover:bg-secondary/40 text-[#FF6B00] hover:text-foreground cursor-pointer"
+                        >
+                          <Command className="h-4 w-4 text-[#FF6B00]" />
+                          <span>Copy Clipboard Link</span>
                         </button>
                       </div>
                     </motion.div>
@@ -835,14 +960,37 @@ export function WorkspaceLayout({
             <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
               
               {/* PAGE FRAMEWORK HEADER */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-border" id="page-framework-header">
-                <div>
-                  <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border/80" id="page-framework-header">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-mono font-bold bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                      LABORATORY
+                    </span>
+                    <span className="text-xs font-mono text-muted-foreground uppercase">
+                      ID: TRACK-MTRX-2026
+                    </span>
+                  </div>
+                  <h1 className="text-lg md:text-xl font-black tracking-tight text-foreground uppercase flex items-center gap-2">
                     {title}
                   </h1>
                   {subtitle && (
-                    <p className="text-xs text-muted-foreground mt-1 font-medium">{subtitle}</p>
+                    <p className="text-[11px] text-muted-foreground font-medium leading-relaxed max-w-2xl">{subtitle}</p>
                   )}
+                  
+                  {/* Phase 21: High-Density Meta Row (Current Date Range, Sync Status, Actions) */}
+                  <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 pt-1.5 text-[9.5px] font-mono text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="h-3 w-3 text-primary" />
+                      <span>RANGE: <b className="text-foreground">JUN 8 – JUL 8, 2026</b></span>
+                    </span>
+                    <span className="h-2.5 w-px bg-border" />
+                    <span className="flex items-center gap-1.5">
+                      <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", syncStatus === 'syncing' ? "bg-amber-500 animate-pulse" : "bg-emerald-500")} />
+                      <span>TELEMETRY SYNC: <b className="text-foreground uppercase">{syncStatus === 'syncing' ? `SYNCING (${syncProgress}%)` : 'CONNECTED & STABLE'}</b></span>
+                    </span>
+                    <span className="h-2.5 w-px bg-border hidden sm:inline" />
+                    <span className="hidden sm:inline">REFRESH STATUS: <b className="text-foreground uppercase">REAL-TIME FEED</b></span>
+                  </div>
                 </div>
 
                 {/* Toolbar & Primary Actions Slots */}
@@ -1125,6 +1273,7 @@ export function WorkspaceLayout({
 // =========================================================
 function CommandPalette() {
   const { setCommandPaletteOpen, athletesList, setActiveAthleteById, triggerSync, setCompactMode, isCompactMode } = useWorkspace();
+  const { setSelectedActivityId, setStoryTab, filters, setFilters, setComparison } = useInteractiveWorkspace();
   const { setTheme, theme } = useTheme();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -1147,11 +1296,210 @@ function CommandPalette() {
         setCommandPaletteOpen(false);
       }
     })),
+    // Dynamic Activity Selection options
+    ...PHYSIOLOGICAL_DATASET.map(act => ({
+      id: `act-${act.id}`,
+      title: `Activity: ${act.title}`,
+      subtitle: `${act.distanceKm}km • ${new Date(act.date).toLocaleDateString()} • Pace: ${act.pace}/km • RSS: ${act.rss}`,
+      category: 'Activities',
+      action: () => {
+        setSelectedActivityId(act.id);
+        window.location.hash = '#activity_analysis';
+        setCommandPaletteOpen(false);
+      }
+    })),
+    // Shoes & Equipment options
+    {
+      id: 'shoe-carbon-rocket',
+      title: 'Filter Equipment: Nike Carbon Rocket V1',
+      subtitle: 'Carbon plate high-lifespan footwear (Filter active dashboard views)',
+      category: 'Equipment & Shoes',
+      action: () => {
+        setFilters(f => ({ ...f, shoes: 'carbon_rocket' }));
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'shoe-trail-shield',
+      title: 'Filter Equipment: Salomon Trail Shield X2',
+      subtitle: 'Protective deep-lug mountain footwear (Filter active dashboard views)',
+      category: 'Equipment & Shoes',
+      action: () => {
+        setFilters(f => ({ ...f, shoes: 'trail_shield' }));
+        setCommandPaletteOpen(false);
+      }
+    },
+    // Routes & Segments
+    {
+      id: 'route-ocean',
+      title: 'Route segment: Ocean Highway Loop',
+      subtitle: 'Flat 10.0km asphalt run segment',
+      category: 'Routes & Locations',
+      action: () => {
+        window.location.hash = '#routes';
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'route-mountain',
+      title: 'Route segment: Mountain Ascent Trail',
+      subtitle: 'Technical mountain climb with +450m elevation gain',
+      category: 'Routes & Locations',
+      action: () => {
+        window.location.hash = '#routes';
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'route-canyon',
+      title: 'Route segment: Canyon Path Trail',
+      subtitle: 'Undulating gravel fire-road loop',
+      category: 'Routes & Locations',
+      action: () => {
+        window.location.hash = '#routes';
+        setCommandPaletteOpen(false);
+      }
+    },
+    // Telemetry Devices
+    {
+      id: 'device-garmin',
+      title: 'Device: Garmin Forerunner 965',
+      subtitle: 'Primary telemetry sync provider (Active connection)',
+      category: 'Telemetry Devices',
+      action: () => {
+        window.location.hash = '#connections';
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'device-coros',
+      title: 'Device: Coros Pace 3',
+      subtitle: 'Secondary telemetry backup sync provider (Standby)',
+      category: 'Telemetry Devices',
+      action: () => {
+        window.location.hash = '#connections';
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'device-apple',
+      title: 'Device: Apple Watch Ultra 2',
+      subtitle: 'Workout GPS backup provider (Standby)',
+      category: 'Telemetry Devices',
+      action: () => {
+        window.location.hash = '#connections';
+        setCommandPaletteOpen(false);
+      }
+    },
+    // Geographic Locations
+    {
+      id: 'loc-sf',
+      title: 'Location: San Francisco, CA',
+      subtitle: 'Coastal temperate running climate',
+      category: 'Geographic Locations',
+      action: () => {
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'loc-boulder',
+      title: 'Location: Boulder, CO',
+      subtitle: 'High-altitude alpine training ground (+1,600m)',
+      category: 'Geographic Locations',
+      action: () => {
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'loc-mountain-view',
+      title: 'Location: Mountain View, CA',
+      subtitle: 'Suburban parkland trails & baylands',
+      category: 'Geographic Locations',
+      action: () => {
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'loc-seattle',
+      title: 'Location: Seattle, WA',
+      subtitle: 'Pacific Northwest humid marine run climate',
+      category: 'Geographic Locations',
+      action: () => {
+        setCommandPaletteOpen(false);
+      }
+    },
+    // Physiological & Mathematical Metrics
+    {
+      id: 'metric-ctl',
+      title: 'Science Metric: CTL (Chronic Training Load)',
+      subtitle: 'Represents 42-day rolling exponential fitness calculation',
+      category: 'Physiological Metrics',
+      action: () => {
+        setStoryTab('fitness');
+        window.location.hash = '#dashboard';
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'metric-atl',
+      title: 'Science Metric: ATL (Acute Training Load)',
+      subtitle: 'Represents 7-day rolling exponential fatigue calculation',
+      category: 'Physiological Metrics',
+      action: () => {
+        setStoryTab('fitness');
+        window.location.hash = '#dashboard';
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'metric-tsb',
+      title: 'Science Metric: TSB (Training Stress Balance)',
+      subtitle: 'Calculates form zones (CTL - ATL)',
+      category: 'Physiological Metrics',
+      action: () => {
+        setStoryTab('fitness');
+        window.location.hash = '#dashboard';
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'metric-rss',
+      title: 'Science Metric: RSS (Running Stress Score)',
+      subtitle: 'Heart-rate and power based session strain formula',
+      category: 'Physiological Metrics',
+      action: () => {
+        setStoryTab('science-lab');
+        window.location.hash = '#dashboard';
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'metric-ef',
+      title: 'Science Metric: Efficiency Factor (EF)',
+      subtitle: 'Ratio of normalized power or pace to mean heart rate',
+      category: 'Physiological Metrics',
+      action: () => {
+        setStoryTab('aerobic');
+        window.location.hash = '#dashboard';
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'metric-decoupling',
+      title: 'Science Metric: Aerobic Decoupling (Cardiac Drift)',
+      subtitle: 'Heart-rate drift compared to power output',
+      category: 'Physiological Metrics',
+      action: () => {
+        setStoryTab('aerobic');
+        window.location.hash = '#dashboard';
+        setCommandPaletteOpen(false);
+      }
+    },
     // Athlete context options
     ...athletesList.map(ath => ({
       id: `athlete-${ath.id}`,
-      title: `Switch Athlete: ${ath.name}`,
-      subtitle: `Change modeling context to ${ath.name}`,
+      title: `Switch Athlete Context: ${ath.name}`,
+      subtitle: `Change modeling calculations and VO2max to ${ath.name}`,
       category: 'Athletes & Profiles',
       action: () => {
         setActiveAthleteById(ath.id);
@@ -1161,19 +1509,47 @@ function CommandPalette() {
     // Command utility action options
     {
       id: 'cmd-sync',
-      title: 'Synchronize Ingestion Feeds',
-      subtitle: 'Triggers active webhook query with Strava',
-      category: 'Ingestion Operations',
+      title: 'Command: Synchronize Ingestion Feeds',
+      subtitle: 'Triggers direct active webhook query with Strava/Intervals.icu API',
+      category: 'System Commands',
       action: () => {
         triggerSync();
         setCommandPaletteOpen(false);
       }
     },
     {
+      id: 'cmd-compare-enable',
+      title: 'Command: Toggle Side-by-Side Comparison Split',
+      subtitle: 'Activates workout block and metrics correlation analyzer',
+      category: 'System Commands',
+      action: () => {
+        setComparison(prev => ({ ...prev, enabled: !prev.enabled }));
+        window.location.hash = '#compare';
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'cmd-export-current',
+      title: 'Command: Export View Payload Data',
+      subtitle: 'Generates real CSV/JSON export report of active telemetry records',
+      category: 'System Commands',
+      action: () => {
+        setCommandPaletteOpen(false);
+        const blob = new Blob([JSON.stringify({ exportTime: new Date().toISOString(), system: 'Track.Studio', data: PHYSIOLOGICAL_DATASET }, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `track-studio-export-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    },
+    {
       id: 'cmd-theme',
-      title: `Toggle Theme: Set to ${theme === 'dark' ? 'Light' : 'Dark'}`,
-      subtitle: 'Changes system appearance styling immediately',
-      category: 'Workspace Preferences',
+      title: `Command: Toggle UI Theme: Set to ${theme === 'dark' ? 'Light' : 'Dark'}`,
+      subtitle: 'Changes system visual style presentation immediately',
+      category: 'System Commands',
       action: () => {
         setTheme(theme === 'dark' ? 'light' : 'dark');
         setCommandPaletteOpen(false);
@@ -1181,9 +1557,9 @@ function CommandPalette() {
     },
     {
       id: 'cmd-density',
-      title: `Toggle Compact View: ${isCompactMode ? 'Disable' : 'Enable'}`,
-      subtitle: 'Adjusts spacing and padding for high-density layouts',
-      category: 'Workspace Preferences',
+      title: `Command: Toggle High-Density Spacing: ${isCompactMode ? 'Disable' : 'Enable'}`,
+      subtitle: 'Adjusts spacing and table margins for dense data reading',
+      category: 'System Commands',
       action: () => {
         setCompactMode(!isCompactMode);
         setCommandPaletteOpen(false);
@@ -1202,10 +1578,10 @@ function CommandPalette() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelectedResultIdx((prev) => (prev + 1) % filteredCommands.length);
+      setSelectedResultIdx((prev) => (prev + 1) % (filteredCommands.length || 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setSelectedResultIdx((prev) => (prev - 1 + filteredCommands.length) % filteredCommands.length);
+      setSelectedResultIdx((prev) => (prev - 1 + (filteredCommands.length || 1)) % (filteredCommands.length || 1));
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (filteredCommands[selectedResultIdx]) {
@@ -1328,6 +1704,86 @@ function CommandPalette() {
           <span>Track.Studio Cmd Palette</span>
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+// =========================================================
+// SIDE INSPECT PANEL
+// =========================================================
+function SideInspectPanel({ routeId, activeActivityName }: { routeId: string, activeActivityName: string }) {
+  return (
+    <div className="p-4 space-y-5 text-xs text-foreground select-none" id="side-inspect-panel-container">
+      <div className="border-b border-border pb-3">
+        <span className="text-[9px] font-mono font-bold text-primary uppercase tracking-widest block">Telemetry Inspector</span>
+        <h3 className="text-sm font-bold uppercase mt-1 tracking-tight">{routeId.replace('_', ' ')} Context</h3>
+      </div>
+
+      {routeId === 'dashboard' && (
+        <div className="space-y-4 font-mono text-[10px]">
+          <div>
+            <span className="text-muted-foreground block font-bold">MODELLING ALGORITHMS</span>
+            <p className="text-foreground leading-relaxed mt-1">CTL/ATL/TSB adaptations are calculated using a 42-day and 7-day rolling exponential model seeded from the Running Stress Score (RSS) of individual sessions.</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground block font-bold">HEALTH LOGS STATUS</span>
+            <p className="text-foreground leading-relaxed mt-1">Direct verification systems check HRV, sleeping resting HR, and biomechanical decoupling to spot physical anomalies early.</p>
+          </div>
+        </div>
+      )}
+
+      {routeId === 'activity_analysis' && (
+        <div className="space-y-4 font-mono text-[10px]">
+          <div>
+            <span className="text-muted-foreground block font-bold">ACTIVE STREAM</span>
+            <p className="text-foreground font-bold uppercase mt-1 text-[#FF6B00]">{activeActivityName}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground block font-bold">BIOMECHANICAL COUPLING</span>
+            <p className="text-foreground leading-relaxed mt-1">Decoupling tracks cardiovascular drift. If the ratio of heart rate to power increases by more than 5% during a steady-state run, aerobic decoupling is flagged.</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground block font-bold">FORMULA DETAILS</span>
+            <ul className="list-disc pl-3.5 space-y-1 text-muted-foreground mt-1.5">
+              <li><strong className="text-foreground">RSS:</strong> Duration × Normalized Power × IF</li>
+              <li><strong className="text-foreground">IF:</strong> NP / FTP or Threshold Pace</li>
+              <li><strong className="text-foreground">EF:</strong> Mean Watts / Mean Heart Rate</li>
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {routeId === 'compare' && (
+        <div className="space-y-4 font-mono text-[10px]">
+          <div>
+            <span className="text-muted-foreground block font-bold">CORRELATION ANALYSIS</span>
+            <p className="text-foreground leading-relaxed mt-1">Allows workout-to-workout or block-to-block overlay analysis. Synchronized time-series scrolling highlights cardiac drift and pacing variability trends side-by-side.</p>
+          </div>
+        </div>
+      )}
+
+      {routeId === 'equipment' && (
+        <div className="space-y-4 font-mono text-[10px]">
+          <div>
+            <span className="text-muted-foreground block font-bold">SHOE WEAR KINETICS</span>
+            <p className="text-foreground leading-relaxed mt-1">Tracks structural wear of cushioning materials. Midsole foams degrade mechanically after 500-600km, increasing joint impact shock.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Default Fallback area */}
+      {!['dashboard', 'activity_analysis', 'compare', 'equipment'].includes(routeId) && (
+        <div className="space-y-3 font-mono text-[10px] text-muted-foreground">
+          <p>This panel displays real-time telemetry inspection variables, physiological formula configurations, and active diagnostic reports.</p>
+          <p>Navigate to Activities, Dashboard, or Equipment for full contextual overlays.</p>
+        </div>
+      )}
+
+      <div className="pt-4 border-t border-border flex flex-col gap-1.5 text-[9px] font-mono text-muted-foreground">
+        <span>Athlete: John Runner</span>
+        <span>Telemetry Stream: GPS/HR/Power</span>
+        <span>Version: Track.Studio v1.2</span>
+      </div>
     </div>
   );
 }

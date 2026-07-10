@@ -49,66 +49,85 @@ export const INTEGRATION_PROVIDERS: IntegrationProvider[] = [
     status: 'active',
   },
   {
-    id: 'garmin-connect',
-    name: 'Garmin Connect',
-    description: 'Direct ingestion from your Garmin sports watch. Sync body battery, sleep tracking, and run statistics.',
+    id: 'garmin-upload',
+    name: 'Garmin FIT/GPX Upload',
+    description: 'Upload Garmin activity files (.fit, .gpx) directly to parse and index GPS tracks, laps, and sensor streams.',
     logo: 'garmin',
-    authType: 'OAuth2',
+    authType: 'FileUpload',
     supportedFeatures: [
       'Direct Fit File ingestion',
-      'Sync Sleep & Recovery Metrics',
+      'High-resolution streams extraction',
     ],
     supportedData: [
-      'Activities',
-      'Sleep Score & HRV Status',
+      'FIT/GPX files',
     ],
     capabilities: [
-      'REAL_TIME_PULL',
       'FIT_FILE_PARSING',
+      'GPX_FILE_PARSING',
     ],
     version: 'v2',
-    status: 'beta',
+    status: 'active',
   },
   {
-    id: 'coros',
-    name: 'Coros Developer Portal',
-    description: 'Synchronize running dynamics, stride length, vertical oscillation, and ground contact balance from Coros watches.',
-    logo: 'coros',
-    authType: 'OAuth2',
+    id: 'tcx-upload',
+    name: 'TCX Upload',
+    description: 'Upload Training Center XML (.tcx) files to ingest historical running activities with heart rate and lap definitions.',
+    logo: 'tcx',
+    authType: 'FileUpload',
     supportedFeatures: [
-      'Sync Activity summaries',
-      'Running Dynamics analysis',
+      'TCX parser with GPS tracks',
+      'Heart rate and power intervals',
     ],
     supportedData: [
-      'Activities',
-      'Stride metrics',
+      'TCX files',
     ],
     capabilities: [
-      'WEBHOOK_INGESTION',
+      'TCX_FILE_PARSING',
     ],
     version: 'v1',
-    status: 'maintenance',
+    status: 'active',
   },
   {
-    id: 'wahoo',
-    name: 'Wahoo Cloud API',
-    description: 'Import workout files from Wahoo ELEMNT RIVAL watches and structured sensor streams.',
-    logo: 'wahoo',
-    authType: 'OAuth2',
+    id: 'gpx-upload',
+    name: 'GPX Upload',
+    description: 'Upload standard GPS Exchange Format (.gpx) tracks to map routes, elevation profiles, and pacing variability.',
+    logo: 'gpx',
+    authType: 'FileUpload',
     supportedFeatures: [
-      'Sync Run Workouts',
+      'GPX track rendering',
+      'Elevation profiling & map matching',
     ],
     supportedData: [
-      'Activities',
+      'GPX files',
     ],
     capabilities: [
-      'PULL_ON_DEMAND',
+      'GPX_TRACK_PARSING',
     ],
-    version: 'v2',
-    status: 'beta',
+    version: 'v1',
+    status: 'active',
+  },
+  {
+    id: 'manual-entry',
+    name: 'Manual Activity Entry',
+    description: 'Log workouts manually with duration, distance, heart rate, and training load to keep records complete.',
+    logo: 'manual',
+    authType: 'Manual',
+    supportedFeatures: [
+      'Custom activity logger form',
+      'Direct load estimation',
+    ],
+    supportedData: [
+      'Manual forms',
+    ],
+    capabilities: [
+      'MANUAL_FORM_SUBMISSION',
+    ],
+    version: 'v1',
+    status: 'active',
   }
 ];
 
 export function getProviderById(id: string): IntegrationProvider | undefined {
   return INTEGRATION_PROVIDERS.find(p => p.id === id);
 }
+

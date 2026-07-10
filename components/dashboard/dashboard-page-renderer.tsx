@@ -39,6 +39,8 @@ import {
   SportsScienceLaboratoryPortal
 } from './interactive-workspace-components';
 
+import AnalyticsLaboratory from './analytics-laboratory';
+
 export function DashboardPageRenderer() {
   const { 
     activeDashboard, 
@@ -60,6 +62,17 @@ export function DashboardPageRenderer() {
     comparison
   } = useInteractiveWorkspace();
 
+  // Global validation: If filters are set to something that returns no matches, show empty state
+  const filteredActivitiesExist = useMemo(() => {
+    if (filters.activityType !== 'all' && filters.activityType !== 'road_run' && filters.activityType !== 'trail_run') {
+      return false; // No matches for unpopulated activity categories
+    }
+    if (filters.surface !== 'all' && filters.surface !== 'road' && filters.surface !== 'trail') {
+      return false; // Empty state for track/treadmill
+    }
+    return true;
+  }, [filters]);
+
   if (!resolvedLayout) {
     return (
       <div className="flex flex-col items-center justify-center p-20 text-xs text-muted-foreground select-none font-mono">
@@ -76,17 +89,6 @@ export function DashboardPageRenderer() {
   const atl = perfVM?.currentAtl ?? 85.8;
   const tsb = perfVM?.currentTsb ?? -13.4;
   const rampRate = perfVM?.ctlRampRate ?? 4.2;
-
-  // Global validation: If filters are set to something that returns no matches, show empty state
-  const filteredActivitiesExist = useMemo(() => {
-    if (filters.activityType !== 'all' && filters.activityType !== 'road_run' && filters.activityType !== 'trail_run') {
-      return false; // No matches for unpopulated activity categories
-    }
-    if (filters.surface !== 'all' && filters.surface !== 'road' && filters.surface !== 'trail') {
-      return false; // Empty state for track/treadmill
-    }
-    return true;
-  }, [filters]);
 
   return (
     <div className="space-y-6 w-full" id="dashboard-renderer-root">
@@ -152,64 +154,40 @@ export function DashboardPageRenderer() {
           {/* 1. TELEMETRY WORKSPACE (DEFAULT HOMEPAGE VIEW) */}
           {storyTab === 'workspace' && (
             <div className="space-y-8 animate-in fade-in duration-200">
-              {/* SECTION 2: PRIMARY ANALYTICS */}
+              {/* SECTION 2: PRIMARY ANALYSIS */}
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5 px-1">
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                    SECTION 02 // PRIMARY ANALYTICS & PHYSIOLOGICAL MODEL
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-primary">
+                    SECTION 02 // PRIMARY ANALYSIS: PHYSIOLOGICAL SYSTEM LOAD (CTL / ATL / TSB)
                   </span>
                 </div>
+                <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200 w-full">
+                  <WidgetFactory widgetId="perf_fitness_fatigue" />
+                </div>
+              </div>
+
+              {/* SECTION 3: SECONDARY ANALYSIS */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-1.5 px-1">
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-primary">
+                    SECTION 03 // SECONDARY ANALYSIS: METRIC MATRICES & DISTRIBUTION CALIBRATIONS
+                  </span>
+                </div>
+                
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                  <div className="lg:col-span-8 bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
-                    <WidgetFactory widgetId="perf_fitness_fatigue" />
-                  </div>
-                  <div className="lg:col-span-4 bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
+                  <div className="lg:col-span-6 bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
                     <WidgetFactory widgetId="home_performance_metrics" />
                   </div>
-                </div>
-              </div>
-
-              {/* SECTION 3: SUPPORTING ANALYTICS */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5 px-1">
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                    SECTION 03 // SUPPORTING ANALYTICS & VOLUME METRICS
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                  <div className="lg:col-span-4 bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
+                  <div className="lg:col-span-6 bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
                     <WidgetFactory widgetId="home_weekly_summary" />
                   </div>
-                  <div className="lg:col-span-8 bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
-                    <WidgetFactory widgetId="home_recent_activity" />
-                  </div>
                 </div>
-              </div>
 
-              {/* SECTION 4: DETAILED PERFORMANCE TABLES */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5 px-1">
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                    SECTION 04 // DETAILED PERFORMANCE METRIC DIRECTORY
-                  </span>
-                </div>
-                <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
-                  <WidgetFactory widgetId="act_list_view" />
-                </div>
-              </div>
-
-              {/* SECTION 5: HISTORICAL TRENDS & ATHLETE CONTEXT */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5 px-1">
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                    SECTION 05 // PHYSIOLOGICAL PROFILES & METABOLIC BASES
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <div className="lg:col-span-1 bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  <div className="lg:col-span-4 bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
                     <WidgetFactory widgetId="home_profile" />
                   </div>
-                  <div className="lg:col-span-2 p-5 bg-card border border-border/80 rounded-2xl flex flex-col justify-between hover:border-primary/20 transition-all duration-200 select-none">
+                  <div className="lg:col-span-8 p-5 bg-card border border-border/80 rounded-2xl flex flex-col justify-between hover:border-primary/20 transition-all duration-200 select-none">
                     <div className="space-y-3.5">
                       <div className="flex items-center justify-between border-b border-border/40 pb-2">
                         <div className="flex items-center space-x-2">
@@ -249,13 +227,29 @@ export function DashboardPageRenderer() {
                     </div>
                   </div>
                 </div>
+
+                <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
+                  <WidgetFactory widgetId="home_recent_activity" />
+                </div>
               </div>
 
-              {/* SECTION 6: CLINICAL DECISION ENGINE */}
+              {/* SECTION 4: DATA TABLES */}
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5 px-1">
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                    SECTION 06 // CLINICAL DECISION ENGINE & PHYSIOLOGICAL INSIGHTS
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-primary">
+                    SECTION 04 // DATA TABLES: DETAILED PERFORMANCE METRIC DIRECTORY
+                  </span>
+                </div>
+                <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
+                  <WidgetFactory widgetId="act_list_view" />
+                </div>
+              </div>
+
+              {/* SECTION 5: CLINICAL INSIGHTS */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5 px-1">
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-primary">
+                    SECTION 05 // INSIGHTS: CLINICAL PATHWAY DIAGNOSTICS & DECISION SYSTEMS
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -329,6 +323,13 @@ export function DashboardPageRenderer() {
           {storyTab === 'science-lab' && (
             <div className="animate-in fade-in duration-200">
               <SportsScienceLaboratoryPortal />
+            </div>
+          )}
+
+          {/* 2.5. ANALYTICS LAB (NEW COMPREHENSIVE WORKSPACE) */}
+          {storyTab === 'analytics-lab' && (
+            <div className="animate-in fade-in duration-200">
+              <AnalyticsLaboratory />
             </div>
           )}
 

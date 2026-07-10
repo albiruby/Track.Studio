@@ -74,7 +74,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const seedAthleteAndActivities = async (profile: AthleteProfile) => {
+    const ensureCanonicalAthleteExists = async (profile: AthleteProfile) => {
       const nameParts = profile.name.split(' ');
       const firstName = nameParts[0] || 'Unknown';
       const lastName = nameParts.slice(1).join(' ') || 'Athlete';
@@ -83,7 +83,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         id: profile.id,
         firstName,
         lastName,
-        profileUrl: profile.avatarUrl,
+        profileUrl: profile.avatarUrl.startsWith('data:') ? null : profile.avatarUrl,
         gender: profile.gender as 'M' | 'F' | 'Other' | null,
         weightKg: profile.weightKg,
         restingHeartRateBpm: profile.restingHr,
@@ -112,242 +112,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       };
 
       await CanonicalRepository.saveAthlete(athlete);
-
-      const now = Date.now();
-      const dayMs = 1000 * 60 * 60 * 24;
-
-      const activityData = [
-        {
-          id: `${profile.id}_act_1`,
-          name: 'Aerobic Threshold Tempo Run',
-          daysAgo: 0,
-          distance: 10000,
-          duration: 2980,
-          avgHr: Math.round(profile.restingHr + 106),
-          maxHr: profile.maxHr - 16,
-          elevation: 45,
-          cadence: 178,
-          power: Math.round(profile.ftpWatts * 0.85),
-          runningStressScore: 78,
-          intensityFactor: 0.85,
-        },
-        {
-          id: `${profile.id}_act_2`,
-          name: 'Aerobic Base Overload',
-          daysAgo: 2,
-          distance: 12400,
-          duration: 4215,
-          avgHr: Math.round(profile.restingHr + 95),
-          maxHr: profile.maxHr - 25,
-          elevation: 110,
-          cadence: 174,
-          power: Math.round(profile.ftpWatts * 0.75),
-          runningStressScore: 92,
-          intensityFactor: 0.75,
-        },
-        {
-          id: `${profile.id}_act_3`,
-          name: 'Recovery Strides Active',
-          daysAgo: 4,
-          distance: 8200,
-          duration: 2710,
-          avgHr: Math.round(profile.restingHr + 80),
-          maxHr: profile.maxHr - 40,
-          elevation: 20,
-          cadence: 180,
-          power: Math.round(profile.ftpWatts * 0.60),
-          runningStressScore: 55,
-          intensityFactor: 0.60,
-        },
-        {
-          id: `${profile.id}_act_4`,
-          name: 'Interval Lactate Ingestion',
-          daysAgo: 6,
-          distance: 15000,
-          duration: 3855,
-          avgHr: Math.round(profile.restingHr + 115),
-          maxHr: profile.maxHr - 5,
-          elevation: 85,
-          cadence: 182,
-          power: Math.round(profile.ftpWatts * 0.95),
-          runningStressScore: 140,
-          intensityFactor: 0.95,
-        },
-        {
-          id: `${profile.id}_act_5`,
-          name: 'Spike Noise Gaps Run',
-          daysAgo: 8,
-          distance: 6500,
-          duration: 1920,
-          avgHr: Math.round(profile.restingHr + 100),
-          maxHr: profile.maxHr - 20,
-          elevation: 35,
-          cadence: 176,
-          power: Math.round(profile.ftpWatts * 0.80),
-          runningStressScore: 48,
-          intensityFactor: 0.80,
-        }
-      ];
-
-      for (const data of activityData) {
-        const durationMin = data.duration / 60;
-        const avgPaceDecimal = durationMin / (data.distance / 1000);
-
-        const activity: CanonicalActivity = {
-          id: data.id,
-          externalProviderId: 'strava',
-          providerObjectId: `strava_${data.id}`,
-          athleteId: profile.id,
-          activityName: data.name,
-          sportType: 'running',
-          startDate: new Date(now - data.daysAgo * dayMs).toISOString(),
-          timezone: 'America/Los_Angeles',
-          elapsedTimeSec: data.duration + 45,
-          movingTimeSec: data.duration,
-          distanceMeters: data.distance,
-          averagePaceMinPerKm: avgPaceDecimal,
-          averageSpeedMps: data.distance / data.duration,
-          maximumSpeedMps: (data.distance / data.duration) * 1.3,
-          elevationGainMeters: data.elevation,
-          elevationLossMeters: data.elevation,
-          averageHeartRateBpm: data.avgHr,
-          maxHeartRateBpm: data.maxHr,
-          averageCadenceRpm: data.cadence,
-          maxCadenceRpm: data.cadence + 15,
-          averagePowerWatts: data.power,
-          maxPowerWatts: Math.round(data.power * 1.5),
-          calories: Math.round(data.distance * 0.065),
-          device: {
-            name: 'Garmin Forerunner 955',
-            serialNumber: 'GRM955-129482',
-            manufacturer: 'Garmin'
-          },
-          shoesId: 'shoe_pegasus_39',
-          gpsPolyline: null,
-          visibility: 'public',
-          privateFlag: false,
-          manualFlag: false,
-          commuteFlag: false,
-          trainerFlag: false,
-          kilojoules: Math.round(data.power * data.duration / 1000),
-          weather: {
-            temperatureC: 15.5,
-            humidityPercent: 65,
-            windSpeedMps: 2.1,
-            windDirectionDeg: 180,
-            summary: 'Clear',
-            precipProbabilityPercent: 0
-          },
-          location: {
-            city: 'San Francisco',
-            state: 'California',
-            country: 'United States',
-            startLatLng: [37.7749, -122.4194],
-            endLatLng: [37.7749, -122.4194]
-          },
-          elevation: {
-            gainMeters: data.elevation,
-            lossMeters: data.elevation,
-            maxAltitudeMeters: data.elevation + 20,
-            minAltitudeMeters: 20
-          },
-          achievements: [],
-          bestEfforts: [],
-          sourceMetadata: {
-            providerId: 'strava',
-            providerObjectId: `strava_raw_${data.id}`,
-            rawDocumentId: `raw_doc_${data.id}`,
-            syncJobId: `sync_job_${data.id}`,
-            apiEndpoint: 'https://www.strava.com/api/v3/activities',
-            payloadHash: `hash_${data.id}`,
-            providerApiVersion: 'v3',
-            transformationVersion: '1.0.0',
-            importedAt: new Date().toISOString()
-          },
-          metadata: {
-            schemaVersion: '1.0.0',
-            importedAt: new Date().toISOString(),
-            transformationVersion: '1.0.0'
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-
-        await CanonicalRepository.saveActivity(activity);
-
-        const lapsCount = Math.ceil(data.distance / 1000);
-        for (let i = 0; i < lapsCount; i++) {
-          const lapDistance = Math.min(1000, data.distance - i * 1000);
-          const lapDuration = (lapDistance / data.distance) * data.duration;
-          await CanonicalRepository.saveLap({
-            id: `${data.id}_lap_${i}`,
-            activityId: data.id,
-            lapIndex: i,
-            name: `Lap ${i + 1}`,
-            elapsedTimeSec: lapDuration + 5,
-            movingTimeSec: lapDuration,
-            distanceMeters: lapDistance,
-            averageSpeedMps: lapDistance / lapDuration,
-            maxSpeedMps: (lapDistance / lapDuration) * 1.2,
-            averageHeartRateBpm: data.avgHr + Math.sin(i) * 5,
-            maxHeartRateBpm: data.maxHr,
-            averageCadenceRpm: data.cadence,
-            averagePowerWatts: data.power + Math.sin(i) * 10,
-            maxPowerWatts: Math.round(data.power * 1.3),
-            elevationGainMeters: 10,
-            elevationLossMeters: 10,
-            startDate: new Date(now - data.daysAgo * dayMs + i * 300000).toISOString(),
-            startIndex: i * 100,
-            endIndex: (i + 1) * 100,
-            sourceMetadata: {
-              providerId: 'strava',
-              providerObjectId: `strava_raw_lap_${data.id}_${i}`,
-              rawDocumentId: `raw_doc_lap_${data.id}_${i}`,
-              syncJobId: `sync_job_${data.id}`,
-              apiEndpoint: 'https://www.strava.com/api/v3/laps',
-              payloadHash: `hash_lap_${data.id}_${i}`,
-              providerApiVersion: 'v3',
-              transformationVersion: '1.0.0',
-              importedAt: new Date().toISOString()
-            },
-            metadata: {
-              schemaVersion: '1.0.0',
-              importedAt: new Date().toISOString(),
-              transformationVersion: '1.0.0'
-            }
-          }, profile.id);
-        }
-      }
-
-      const gear: CanonicalGear = {
-        id: 'shoe_pegasus_39',
-        athleteId: profile.id,
-        name: 'Nike Air Zoom Pegasus 39',
-        brandName: 'Nike',
-        modelName: 'Pegasus 39',
-        distanceMeters: 450000,
-        isPrimary: true,
-        description: 'Daily trainer shoe',
-        retired: false,
-        type: 'shoes',
-        sourceMetadata: {
-          providerId: 'strava',
-          providerObjectId: 'gear_pegasus_39',
-          rawDocumentId: `raw_gear_pegasus_39_${profile.id}`,
-          syncJobId: `sync_job_${profile.id}`,
-          apiEndpoint: 'https://www.strava.com/api/v3/gear',
-          payloadHash: 'initial_gear_hash',
-          providerApiVersion: 'v3',
-          transformationVersion: '1.0.0',
-          importedAt: new Date().toISOString()
-        },
-        metadata: {
-          schemaVersion: '1.0.0',
-          importedAt: new Date().toISOString(),
-          transformationVersion: '1.0.0'
-        }
-      };
-      await CanonicalRepository.saveGear(gear);
     };
 
     const loadData = async () => {
@@ -355,10 +119,10 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       try {
         const queryEngine = new AnalyticsQueryEngine();
         
-        // Ensure athlete profile exists in Firestore, else perform deterministic live seeding
+        // Ensure canonical athlete profile exists in Firestore without seeding mock activities
         const existingAthlete = await queryEngine['getAthlete'](activeAthlete.id);
         if (!existingAthlete) {
-          await seedAthleteAndActivities(activeAthlete);
+          await ensureCanonicalAthleteExists(activeAthlete);
         }
 
         const [homeVM, perfVM] = await Promise.all([

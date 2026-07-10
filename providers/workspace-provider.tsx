@@ -170,6 +170,82 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   // Filters state
   const [isFiltersOpen, setFiltersOpen] = useState(false);
 
+  // --- LOCALSTORAGE PERSISTENCE HYDRATION ---
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const collapsed = localStorage.getItem('track_studio_sidebar_collapsed');
+      if (collapsed !== null) setSidebarCollapsed(JSON.parse(collapsed));
+
+      const compact = localStorage.getItem('track_studio_compact_mode');
+      if (compact !== null) setCompactMode(JSON.parse(compact));
+
+      const favs = localStorage.getItem('track_studio_favorites');
+      if (favs !== null) setFavorites(JSON.parse(favs));
+
+      const recents = localStorage.getItem('track_studio_recent_pages');
+      if (recents !== null) setRecentPages(JSON.parse(recents));
+
+      const athlete = localStorage.getItem('track_studio_active_athlete');
+      if (athlete !== null) {
+        const parsed = JSON.parse(athlete);
+        const match = defaultAthletes.find(a => a.id === parsed.id);
+        if (match) setActiveAthlete(match);
+      }
+
+      const isPanelOpen = localStorage.getItem('track_studio_side_panel_open');
+      if (isPanelOpen !== null) setSidePanelOpen(JSON.parse(isPanelOpen));
+
+      const isFilOpen = localStorage.getItem('track_studio_filters_open');
+      if (isFilOpen !== null) setFiltersOpen(JSON.parse(isFilOpen));
+    } catch (e) {
+      console.error('Failed to load localStorage', e);
+    }
+  }, []);
+
+  // Save on change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('track_studio_sidebar_collapsed', JSON.stringify(isSidebarCollapsed));
+    }
+  }, [isSidebarCollapsed]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('track_studio_compact_mode', JSON.stringify(isCompactMode));
+    }
+  }, [isCompactMode]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('track_studio_favorites', JSON.stringify(favorites));
+    }
+  }, [favorites]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('track_studio_recent_pages', JSON.stringify(recentPages));
+    }
+  }, [recentPages]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('track_studio_active_athlete', JSON.stringify(activeAthlete));
+    }
+  }, [activeAthlete]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('track_studio_side_panel_open', JSON.stringify(isSidePanelOpen));
+    }
+  }, [isSidePanelOpen]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('track_studio_filters_open', JSON.stringify(isFiltersOpen));
+    }
+  }, [isFiltersOpen]);
+
   // Notifications store
   const [notifications, setNotifications] = useState<WorkspaceNotification[]>([
     {
