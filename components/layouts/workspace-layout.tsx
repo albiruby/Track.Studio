@@ -394,7 +394,7 @@ export function WorkspaceLayout({
                     TRACK<span className="text-primary font-bold">.STUDIO</span>
                   </span>
                   <div className="text-[7.5px] text-muted-foreground font-bold tracking-widest uppercase mt-0.5 leading-none">
-                    BAUHAUS WORKSPACE
+                    PERFORMANCE HUB
                   </div>
                 </div>
               )}

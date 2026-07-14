@@ -287,12 +287,12 @@ export function PerformanceStorytellingSelector() {
   const { storyTab, setStoryTab } = useInteractiveWorkspace();
 
   const tabs = [
-    { key: 'workspace', label: 'Telemetry Workspace', icon: Grid, color: 'text-primary' },
-    { key: 'science-lab', label: '🔬 Sports Science Lab', icon: Anchor, color: 'text-[#FF6B00]' },
-    { key: 'analytics-lab', label: '🧪 Analytics Lab', icon: BarChart3, color: 'text-indigo-500' },
+    { key: 'workspace', label: 'Overview', icon: Grid, color: 'text-primary' },
+    { key: 'science-lab', label: 'Sports Science', icon: Anchor, color: 'text-[#FF6B00]' },
+    { key: 'analytics-lab', label: 'Performance Analytics', icon: BarChart3, color: 'text-indigo-500' },
     { key: 'fitness', label: 'Fitness Adaptation', icon: TrendingUp, color: 'text-emerald-500' },
-    { key: 'recovery', label: 'Recovery Kinetics', icon: Heart, color: 'text-rose-500' },
-    { key: 'training', label: 'Volume Density', icon: CalendarDays, color: 'text-sky-500' },
+    { key: 'recovery', label: 'Recovery Balance', icon: Heart, color: 'text-rose-500' },
+    { key: 'training', label: 'Volume & Stress', icon: CalendarDays, color: 'text-sky-500' },
     { key: 'aerobic', label: 'Aerobic Stability', icon: Compass, color: 'text-indigo-500' },
     { key: 'threshold', label: 'Lactate Threshold', icon: Zap, color: 'text-amber-500' },
   ];

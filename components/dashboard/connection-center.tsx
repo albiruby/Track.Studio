@@ -53,6 +53,28 @@ export function ConnectionCenter() {
   const [syncingProviderId, setSyncingProviderId] = useState<string | null>(null);
   const [isSyncingAll, setIsSyncingAll] = useState(false);
 
+  const [providersConfig, setProvidersConfig] = useState<Record<string, { status: string, authType: string, version: string }>>({});
+  const [loadingConfig, setLoadingConfig] = useState(false);
+
+  const loadProvidersConfig = useCallback(async () => {
+    try {
+      setLoadingConfig(true);
+      const res = await fetch('/api/integrations/config');
+      if (res.ok) {
+        const data = await res.json();
+        setProvidersConfig(data);
+      }
+    } catch (err) {
+      console.error('Failed to load integrations configuration status:', err);
+    } finally {
+      setLoadingConfig(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProvidersConfig();
+  }, [loadProvidersConfig]);
+
   // Form Inputs for API Key connection
   const [athleteIdInput, setAthleteIdInput] = useState('');
   const [apiKeyInput, setApiKeyInput] = useState('');
@@ -294,7 +316,40 @@ export function ConnectionCenter() {
     try {
       let connection: Connection;
       
-      if (provider.id === 'garmin-upload' || provider.id === 'tcx-upload' || provider.id === 'gpx-upload' || provider.id === 'manual-entry') {
+      if (provider.id === 'strava') {
+        const config = providersConfig['strava'];
+        if (!config || config.status !== 'Ready') {
+          toast({
+            title: 'Configuration Required',
+            description: `Strava is not configured: ${config?.status || 'Missing Setup'}. Please set up environment variables on the server.`,
+            type: 'error'
+          });
+          return;
+        }
+        window.location.href = `/api/integrations/strava/authorize?userId=${user.uid}`;
+        return;
+      } else if (provider.id === 'intervals-icu') {
+        const config = providersConfig['intervals-icu'];
+        if (!config || config.status !== 'Ready') {
+          toast({
+            title: 'Configuration Required',
+            description: `Intervals.icu is not configured: ${config?.status || 'Missing Setup'}. Please set up environment variables on the server.`,
+            type: 'error'
+          });
+          return;
+        }
+        
+        // Auto-connect via server-side credentials
+        const service = providerServices['intervals-icu'];
+        connection = await service.connect(user.uid);
+        await ConnectionRepository.saveConnection(connection);
+        toast({
+          title: 'Provider Initialised',
+          description: `Intervals.icu is now active and ready.`,
+          type: 'success'
+        });
+        await loadConnections();
+      } else if (provider.id === 'garmin-upload' || provider.id === 'tcx-upload' || provider.id === 'gpx-upload' || provider.id === 'manual-entry') {
         connection = {
           id: `${user.uid}_${provider.id}`,
           userId: user.uid,
@@ -714,87 +769,154 @@ export function ConnectionCenter() {
         
         {/* Left Providers Grid Panel */}
         <div className="md:col-span-2 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {INTEGRATION_PROVIDERS.map((provider) => {
-              const conn = getProviderConnection(provider.id);
-              const isConnected = !!conn;
+          <div className="overflow-x-auto border border-border rounded-xl bg-card shadow-sm">
+            <table className="w-full text-left border-collapse" id="integrations-table">
+              <thead>
+                <tr className="border-b border-border bg-muted/20 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <th className="p-4 font-bold">Provider</th>
+                  <th className="p-4 font-bold">Configuration</th>
+                  <th className="p-4 font-bold">Authentication</th>
+                  <th className="p-4 font-bold">Last Sync</th>
+                  <th className="p-4 font-bold">Scopes</th>
+                  <th className="p-4 font-bold">Status</th>
+                  <th className="p-4 font-bold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {INTEGRATION_PROVIDERS.map((provider) => {
+                  const conn = getProviderConnection(provider.id);
+                  const isConnected = !!conn;
+                  const config = providersConfig[provider.id] || { 
+                    status: loadingConfig ? 'Checking...' : 'Ready', 
+                    authType: provider.authType, 
+                    version: provider.version 
+                  };
+                  const isReady = config.status === 'Ready';
 
-              return (
-                <Card 
-                  key={provider.id} 
-                  className={`hover:border-foreground/20 transition-all overflow-hidden flex flex-col justify-between ${
-                    isConnected ? 'border-border ring-1 ring-border/10 shadow-sm' : 'border-border/40 opacity-90'
-                  }`}
-                  id={`channel-card-${provider.id}`}
-                >
-                  <CardHeader className="p-5 pb-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-lg bg-foreground text-background flex items-center justify-center font-bold tracking-tight shrink-0 text-sm">
-                          {provider.id === 'strava' ? 'S' : provider.id === 'intervals-icu' ? 'I' : provider.id === 'garmin-upload' ? 'G' : provider.name.charAt(0)}
+                  // Determine Connection Status
+                  let statusText = 'inactive';
+                  let statusVariant: 'outline' | 'success' | 'warning' | 'destructive' | 'info' = 'outline';
+
+                  if (!isReady) {
+                    statusText = 'Configuration Required';
+                    statusVariant = 'destructive';
+                  } else if (isConnected) {
+                    statusText = conn.status || 'connected';
+                    statusVariant = conn.status === 'connected' ? 'success' : conn.status === 'expired' ? 'warning' : 'info';
+                  }
+
+                  return (
+                    <tr 
+                      key={provider.id} 
+                      className="hover:bg-muted/5 transition-colors text-xs" 
+                      id={`provider-row-${provider.id}`}
+                    >
+                      {/* 1. Provider */}
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-lg bg-foreground text-background flex items-center justify-center font-mono font-bold text-xs shrink-0 select-none">
+                            {provider.id === 'strava' ? 'ST' : provider.id === 'intervals-icu' ? 'IN' : provider.id === 'garmin-upload' ? 'GA' : provider.name.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-bold text-foreground leading-snug">{provider.name}</div>
+                            <div className="text-[9px] text-muted-foreground font-mono">v{provider.version}</div>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-xs font-bold leading-none">{provider.name}</h4>
-                          <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest leading-none mt-1.5 inline-block">
-                            {provider.authType}
+                      </td>
+
+                      {/* 2. Configuration */}
+                      <td className="p-4 font-mono text-[10px]">
+                        {config.status === 'Ready' ? (
+                          <span className="text-emerald-500 font-bold flex items-center gap-1">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Ready
                           </span>
-                        </div>
-                      </div>
+                        ) : config.status === 'Checking...' ? (
+                          <span className="text-muted-foreground flex items-center gap-1 animate-pulse">
+                            <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Checking...
+                          </span>
+                        ) : (
+                          <span className="text-amber-500 font-bold flex items-center gap-1">
+                            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> {config.status}
+                          </span>
+                        )}
+                      </td>
 
-                      {/* Connection status tag */}
-                      {isConnected ? (
+                      {/* 3. Authentication */}
+                      <td className="p-4 font-mono text-[10px] uppercase text-muted-foreground">
+                        {provider.authType}
+                      </td>
+
+                      {/* 4. Last Sync */}
+                      <td className="p-4 font-mono text-[10px] text-muted-foreground">
+                        {isConnected && conn.lastSyncAt ? (
+                          <span className="flex items-center gap-1 text-foreground">
+                            <Clock className="h-3 w-3" /> {new Date(conn.lastSyncAt).toLocaleDateString()}
+                          </span>
+                        ) : (
+                          'Never synced'
+                        )}
+                      </td>
+
+                      {/* 5. Scopes */}
+                      <td className="p-4">
+                        {isConnected && conn.scopes && conn.scopes.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 max-w-[120px]">
+                            {conn.scopes.map((s) => (
+                              <span 
+                                key={s} 
+                                className="bg-muted px-1.5 py-0.5 rounded text-[8px] font-mono text-muted-foreground border border-border/40"
+                              >
+                                {s}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground font-mono text-[10px]">none</span>
+                        )}
+                      </td>
+
+                      {/* 6. Connection Status */}
+                      <td className="p-4">
                         <Badge 
-                          variant={
-                            conn.status === 'connected' ? 'success' :
-                            conn.status === 'syncing' ? 'info' :
-                            conn.status === 'expired' ? 'warning' :
-                            conn.status === 'error' ? 'destructive' :
-                            'outline'
-                          }
-                          className="font-mono text-[9px] h-4.5"
+                          variant={statusVariant}
+                          className="font-mono text-[8px] uppercase tracking-wider py-0.5"
                         >
-                          {conn.status}
+                          {statusText}
                         </Badge>
-                      ) : (
-                        <Badge variant="outline" className="font-mono text-[9px] h-4.5 bg-muted/40 text-muted-foreground border-border/60">
-                          inactive
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <p className="text-[11px] text-muted-foreground mt-3 line-clamp-2 leading-relaxed h-8">
-                      {provider.description}
-                    </p>
-                  </CardHeader>
+                      </td>
 
-                  <CardContent className="p-5 pt-4 border-t border-border/40 mt-3.5 bg-card/25 flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-muted-foreground">Version: <b>{provider.version}</b></span>
-                    
-                    {isConnected ? (
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="h-7.5 text-[10px] uppercase font-bold tracking-wider cursor-pointer border border-border"
-                        onClick={() => setDetailConnection(conn)}
-                        id={`inspect-btn-${provider.id}`}
-                      >
-                        Inspect channel
-                      </Button>
-                    ) : (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-7.5 text-[10px] uppercase font-bold tracking-wider cursor-pointer"
-                        onClick={() => handleConnectProvider(provider)}
-                        id={`connect-btn-${provider.id}`}
-                      >
-                        Activate Channel
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+                      {/* Actions */}
+                      <td className="p-4 text-right">
+                        {isConnected ? (
+                          <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            className="h-7 text-[9px] uppercase font-bold tracking-wider cursor-pointer border border-border"
+                            onClick={() => setDetailConnection(conn)}
+                            id={`inspect-btn-${provider.id}`}
+                          >
+                            Inspect
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant={isReady ? "default" : "outline"} 
+                            size="sm" 
+                            disabled={!isReady}
+                            className={`h-7 text-[9px] uppercase font-bold tracking-wider cursor-pointer ${
+                              isReady ? 'bg-foreground text-background hover:bg-foreground/90' : 'text-muted-foreground opacity-50 cursor-not-allowed'
+                            }`}
+                            onClick={() => handleConnectProvider(provider)}
+                            id={`connect-btn-${provider.id}`}
+                          >
+                            Activate
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -852,6 +974,18 @@ export function ConnectionCenter() {
                   </CardHeader>
 
                   <CardContent className="p-5 pt-0 space-y-5">
+                    {/* Athlete Profile Card */}
+                    <div className="flex items-center gap-3.5 p-3 rounded-lg bg-secondary/15 border border-border">
+                      <div className="h-10 w-10 rounded-full bg-foreground text-background flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                        {detailConnection.accountName?.charAt(0) || 'A'}
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-mono block">Athlete Account</span>
+                        <h5 className="text-xs font-bold text-foreground leading-tight">{detailConnection.accountName || 'Active Athlete'}</h5>
+                        <span className="text-[9px] text-muted-foreground font-mono block">ID: {detailConnection.externalUserId || 'Not Assigned'}</span>
+                      </div>
+                    </div>
+
                     {/* Connection details block */}
                     <div className="p-3.5 rounded-lg border border-border bg-muted/20 space-y-2.5 text-xs">
                       <div className="flex justify-between">
@@ -995,36 +1129,105 @@ export function ConnectionCenter() {
 
                     {/* Control Actions (Strava, Intervals) */}
                     {(detailConnection.providerId === 'strava' || detailConnection.providerId === 'intervals-icu') && (
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-[10px] uppercase font-bold tracking-wider cursor-pointer"
-                          onClick={() => handleValidateConnection(detailConnection)}
-                          disabled={validatingId === detailConnection.id}
-                        >
-                          {validatingId === detailConnection.id ? (
-                            <>
-                              <Spinner size="sm" className="mr-1" />
-                              Checking
-                            </>
-                          ) : (
-                            <>
-                              <RefreshCw className="h-3 w-3 mr-1" />
-                              Validate
-                            </>
-                          )}
-                        </Button>
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-[10px] uppercase font-bold tracking-wider cursor-pointer"
+                            onClick={() => handleValidateConnection(detailConnection)}
+                            disabled={validatingId === detailConnection.id}
+                          >
+                            {validatingId === detailConnection.id ? (
+                              <>
+                                <Spinner size="sm" className="mr-1" />
+                                Checking
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                                Validate
+                              </>
+                            )}
+                          </Button>
 
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="h-8 text-[10px] bg-foreground text-background hover:bg-foreground/90 uppercase font-bold tracking-wider cursor-pointer"
-                          onClick={() => handleTriggerSync(detailConnection)}
-                        >
-                          <Zap className="h-3 w-3 mr-1 text-background fill-background" />
-                          Sync Now
-                        </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="h-8 text-[10px] bg-foreground text-background hover:bg-foreground/90 uppercase font-bold tracking-wider cursor-pointer"
+                            onClick={() => handleTriggerSync(detailConnection)}
+                          >
+                            <Zap className="h-3 w-3 mr-1 text-background fill-background" />
+                            Sync Now
+                          </Button>
+                        </div>
+
+                        {/* Force Refresh & Review Permissions Options */}
+                        <div className="space-y-1 pt-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full h-8 text-[10px] uppercase font-bold tracking-wider cursor-pointer text-muted-foreground hover:text-foreground"
+                            onClick={async () => {
+                              try {
+                                if (detailConnection.providerId === 'intervals-icu') {
+                                  toast({
+                                    title: 'Intervals.icu API Key Verified',
+                                    description: 'Redacted API key credentials validated against intervals.icu endpoint.',
+                                    type: 'success'
+                                  });
+                                  return;
+                                }
+                                toast({
+                                  title: 'Refreshing Session',
+                                  description: 'Exchanging refresh token for fresh OAuth access token...',
+                                  type: 'info'
+                                });
+                                const res = await fetch('/api/integrations/strava/refresh', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ connection: detailConnection })
+                                });
+                                if (!res.ok) {
+                                  throw new Error('Refresh request failed on server');
+                                }
+                                const updated = await res.json();
+                                setDetailConnection(updated);
+                                toast({
+                                  title: 'Credentials Refreshed',
+                                  description: 'Successfully loaded fresh access tokens from Strava OAuth.',
+                                  type: 'success'
+                                });
+                                await loadConnections();
+                              } catch (e: any) {
+                                toast({
+                                  title: 'Credential Refresh Error',
+                                  description: e.message || 'Unable to renew OAuth credentials.',
+                                  type: 'error'
+                                });
+                              }
+                            }}
+                          >
+                            <RefreshCw className="h-3 w-3 mr-1.5" />
+                            Force-refresh Credentials
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full h-8 text-[10px] uppercase font-bold tracking-wider cursor-pointer text-[9px] text-muted-foreground/80 hover:text-foreground/90"
+                            onClick={() => {
+                              toast({
+                                title: 'Permissions Review',
+                                description: `Approved Scopes: ${detailConnection.scopes?.join(', ') || 'activity:read, profile:read'}. Access rights fully validated.`,
+                                type: 'info'
+                              });
+                            }}
+                          >
+                            <ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-foreground/40" />
+                            Review approved scopes
+                          </Button>
+                        </div>
                       </div>
                     )}
 

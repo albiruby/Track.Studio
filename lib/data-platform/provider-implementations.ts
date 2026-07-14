@@ -87,18 +87,12 @@ export class StravaIntegrationService implements IIntegrationProviderService {
 }
 
 export class IntervalsIcuIntegrationService implements IIntegrationProviderService {
-  async connect(userId: string, authParams: { athleteId: string, apiKey: string }): Promise<Connection> {
-    if (!authParams.athleteId || !authParams.apiKey) {
-      throw new IntegrationError('Both Athlete ID and API Key are required for Intervals.icu Integration.');
-    }
-
+  async connect(userId: string, authParams?: { athleteId?: string, apiKey?: string }): Promise<Connection> {
     // Perform real credential validation with intervals.icu by calling our secure server proxy endpoint
     const response = await fetch('/api/integrations/intervals/validate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        athleteId: authParams.athleteId,
-        apiKey: authParams.apiKey,
         userId: userId,
       }),
     });
@@ -109,13 +103,14 @@ export class IntervalsIcuIntegrationService implements IIntegrationProviderServi
     }
 
     const verification = await response.json();
-    const athleteName = verification.athlete?.name || `Intervals Athlete (ID: ${authParams.athleteId})`;
+    const athleteName = verification.athlete?.name || 'Intervals Athlete';
+    const athleteId = verification.athlete?.id || 'intervals-athlete';
 
     return {
       id: `${userId}_intervals-icu`,
       userId,
       providerId: 'intervals-icu',
-      externalUserId: authParams.athleteId,
+      externalUserId: athleteId,
       accountName: `${athleteName} (Intervals.icu)`,
       connectedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -125,8 +120,7 @@ export class IntervalsIcuIntegrationService implements IIntegrationProviderServi
       health: 'healthy',
       healthMessage: 'Static API Key validated. Connection verified.',
       metadata: {
-        athleteId: authParams.athleteId,
-        apiKeyRedacted: '••••••••' + authParams.apiKey.slice(-4),
+        athleteId: athleteId,
         scopeApproved: ['metrics:read', 'load:read'],
       }
     };

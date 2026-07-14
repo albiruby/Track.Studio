@@ -584,4 +584,158 @@ export class CanonicalRepository {
       handleFirestoreError(e, OperationType.WRITE, path);
     }
   }
+
+  /**
+   * Persists daily wellness records (sleep, hrv, weight, readiness).
+   */
+  static async saveWellness(wellness: any, userId: string): Promise<void> {
+    const firestore = getFirebaseFirestore();
+    const id = wellness.id || wellness.date || 'global';
+    if (!firestore) {
+      FallbackStorage.save('wellness', userId, id, wellness);
+      return;
+    }
+
+    const path = `users/${userId}/canonical_wellness/${id}`;
+    try {
+      const docRef = doc(firestore, 'users', userId, 'canonical_wellness', id);
+      await setDoc(docRef, wellness);
+      FallbackStorage.save('wellness', userId, id, wellness);
+    } catch (e) {
+      if (isOfflineError(e)) {
+        console.warn(`Firestore offline. Saved wellness locally: ${id}`);
+        FallbackStorage.save('wellness', userId, id, wellness);
+        return;
+      }
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  }
+
+  /**
+   * Persists training calendar events (planned or completed workouts, notes, events).
+   */
+  static async saveCalendarEvent(event: any, userId: string): Promise<void> {
+    const firestore = getFirebaseFirestore();
+    const id = String(event.id);
+    if (!firestore) {
+      FallbackStorage.save('calendar_events', userId, id, event);
+      return;
+    }
+
+    const path = `users/${userId}/canonical_calendar_events/${id}`;
+    try {
+      const docRef = doc(firestore, 'users', userId, 'canonical_calendar_events', id);
+      await setDoc(docRef, event);
+      FallbackStorage.save('calendar_events', userId, id, event);
+    } catch (e) {
+      if (isOfflineError(e)) {
+        console.warn(`Firestore offline. Saved calendar event locally: ${id}`);
+        FallbackStorage.save('calendar_events', userId, id, event);
+        return;
+      }
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  }
+
+  /**
+   * Persists athlete's heart rate zones.
+   */
+  static async saveHeartRateZones(zones: any, userId: string): Promise<void> {
+    const firestore = getFirebaseFirestore();
+    if (!firestore) {
+      FallbackStorage.save('hr_zones', userId, 'global', zones);
+      return;
+    }
+
+    const path = `users/${userId}/canonical_heart_rate_zones/global`;
+    try {
+      const docRef = doc(firestore, 'users', userId, 'canonical_heart_rate_zones', 'global');
+      await setDoc(docRef, zones);
+      FallbackStorage.save('hr_zones', userId, 'global', zones);
+    } catch (e) {
+      if (isOfflineError(e)) {
+        console.warn(`Firestore offline. Saved HR zones locally.`);
+        FallbackStorage.save('hr_zones', userId, 'global', zones);
+        return;
+      }
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  }
+
+  /**
+   * Persists athlete's power zones.
+   */
+  static async savePowerZones(zones: any, userId: string): Promise<void> {
+    const firestore = getFirebaseFirestore();
+    if (!firestore) {
+      FallbackStorage.save('power_zones', userId, 'global', zones);
+      return;
+    }
+
+    const path = `users/${userId}/canonical_power_zones/global`;
+    try {
+      const docRef = doc(firestore, 'users', userId, 'canonical_power_zones', 'global');
+      await setDoc(docRef, zones);
+      FallbackStorage.save('power_zones', userId, 'global', zones);
+    } catch (e) {
+      if (isOfflineError(e)) {
+        console.warn(`Firestore offline. Saved power zones locally.`);
+        FallbackStorage.save('power_zones', userId, 'global', zones);
+        return;
+      }
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  }
+
+  /**
+   * Persists a workout library template.
+   */
+  static async saveWorkout(workout: any, userId: string): Promise<void> {
+    const firestore = getFirebaseFirestore();
+    const id = String(workout.id);
+    if (!firestore) {
+      FallbackStorage.save('workouts', userId, id, workout);
+      return;
+    }
+
+    const path = `users/${userId}/canonical_workouts/${id}`;
+    try {
+      const docRef = doc(firestore, 'users', userId, 'canonical_workouts', id);
+      await setDoc(docRef, workout);
+      FallbackStorage.save('workouts', userId, id, workout);
+    } catch (e) {
+      if (isOfflineError(e)) {
+        console.warn(`Firestore offline. Saved workout template locally: ${id}`);
+        FallbackStorage.save('workouts', userId, id, workout);
+        return;
+      }
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  }
+
+  /**
+   * Persists daily fitness/fatigue/form history data points.
+   */
+  static async saveFitnessHistory(history: any, userId: string): Promise<void> {
+    const firestore = getFirebaseFirestore();
+    const id = history.date || 'global';
+    if (!firestore) {
+      FallbackStorage.save('fitness_history', userId, id, history);
+      return;
+    }
+
+    const path = `users/${userId}/canonical_fitness_history/${id}`;
+    try {
+      const docRef = doc(firestore, 'users', userId, 'canonical_fitness_history', id);
+      await setDoc(docRef, history);
+      FallbackStorage.save('fitness_history', userId, id, history);
+    } catch (e) {
+      if (isOfflineError(e)) {
+        console.warn(`Firestore offline. Saved fitness history point locally: ${id}`);
+        FallbackStorage.save('fitness_history', userId, id, history);
+        return;
+      }
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  }
 }

@@ -112,7 +112,10 @@ export class IntervalsIcuProvider implements IIntegrationProvider {
   providerId = 'intervals-icu';
 
   async connect(userId: string, authParams?: Record<string, any>): Promise<any> {
-    if (!authParams?.athleteId || !authParams?.apiKey) {
+    const athleteId = authParams?.athleteId || process.env.INTERVALS_ATHLETE_ID;
+    const apiKey = authParams?.apiKey || process.env.INTERVALS_API_KEY;
+
+    if (!athleteId || !apiKey) {
       throw new Error('Both Athlete ID and API Key are required for Intervals.icu.');
     }
 
@@ -120,8 +123,8 @@ export class IntervalsIcuProvider implements IIntegrationProvider {
       id: `${userId}_intervals-icu`,
       userId,
       providerId: this.providerId,
-      externalUserId: authParams.athleteId,
-      accountName: authParams.athleteName || `Intervals Athlete (ID: ${authParams.athleteId})`,
+      externalUserId: athleteId,
+      accountName: authParams?.athleteName || `Intervals Athlete (ID: ${athleteId})`,
       connectedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       lastSyncAt: null,
@@ -130,15 +133,15 @@ export class IntervalsIcuProvider implements IIntegrationProvider {
       health: 'healthy',
       healthMessage: 'Static API Key validated.',
       metadata: {
-        athleteId: authParams.athleteId,
-        apiKeyRedacted: '••••••••' + authParams.apiKey.slice(-4),
+        athleteId: athleteId,
+        apiKeyRedacted: '••••••••' + apiKey.slice(-4),
       }
     };
 
     await ConnectionRepository.saveConnection(connection);
     await IngestionRepository.saveSecureCredentials(userId, this.providerId, {
-      athleteId: authParams.athleteId,
-      apiKey: authParams.apiKey,
+      athleteId: athleteId,
+      apiKey: apiKey,
     });
 
     return connection;

@@ -35,27 +35,27 @@
 }
 
 :root {
-  --background: #0F1117;
-  --foreground: #F4F5F7;
-  --card: #121722;
-  --card-foreground: #F4F5F7;
-  --popover: #121722;
-  --popover-foreground: #F4F5F7;
-  --primary: #FF6B00;
+  --background: #F9FAFB;
+  --foreground: #111827;
+  --card: #FFFFFF;
+  --card-foreground: #111827;
+  --popover: #FFFFFF;
+  --popover-foreground: #111827;
+  --primary: #FC5200;
   --primary-foreground: #ffffff;
-  --secondary: #161B26;
-  --secondary-foreground: #F4F5F7;
-  --muted: #161B26;
-  --muted-foreground: #9CA3AF;
-  --accent: #161B26;
-  --accent-foreground: #F4F5F7;
+  --secondary: #F3F4F6;
+  --secondary-foreground: #1F2937;
+  --muted: #F3F4F6;
+  --muted-foreground: #6B7280;
+  --accent: #F3F4F6;
+  --accent-foreground: #111827;
   --destructive: #EF4444;
-  --destructive-foreground: #F4F5F7;
-  --border: #232A36;
-  --input: #232A36;
-  --ring: #FF6B00;
+  --destructive-foreground: #ffffff;
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #FC5200;
   
-  --status-success: #22C55E;
+  --status-success: #10B981;
   --status-warning: #F59E0B;
   --status-danger: #EF4444;
   --status-info: #3B82F6;
@@ -64,27 +64,27 @@
 }
 
 .dark {
-  --background: #0F1117;
-  --foreground: #F4F5F7;
-  --card: #121722;
-  --card-foreground: #F4F5F7;
-  --popover: #121722;
-  --popover-foreground: #F4F5F7;
-  --primary: #FF6B00;
+  --background: #F9FAFB;
+  --foreground: #111827;
+  --card: #FFFFFF;
+  --card-foreground: #111827;
+  --popover: #FFFFFF;
+  --popover-foreground: #111827;
+  --primary: #FC5200;
   --primary-foreground: #ffffff;
-  --secondary: #161B26;
-  --secondary-foreground: #F4F5F7;
-  --muted: #161B26;
-  --muted-foreground: #9CA3AF;
-  --accent: #161B26;
-  --accent-foreground: #F4F5F7;
+  --secondary: #F3F4F6;
+  --secondary-foreground: #1F2937;
+  --muted: #F3F4F6;
+  --muted-foreground: #6B7280;
+  --accent: #F3F4F6;
+  --accent-foreground: #111827;
   --destructive: #EF4444;
-  --destructive-foreground: #F4F5F7;
-  --border: #232A36;
-  --input: #232A36;
-  --ring: #FF6B00;
+  --destructive-foreground: #ffffff;
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #FC5200;
   
-  --status-success: #22C55E;
+  --status-success: #10B981;
   --status-warning: #F59E0B;
   --status-danger: #EF4444;
   --status-info: #3B82F6;
@@ -95,7 +95,7 @@ body {
   color: var(--foreground);
 }
 
-/* Custom Bauhaus thin scrollbars */
+/* Custom modern thin scrollbars for light theme */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -104,17 +104,17 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3A3F4A;
+  background: #E5E7EB;
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #3A3F4A;
+  background: #E5E7EB;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #FF6B00;
+  background: #FC5200;
   background-clip: border-box;
 }

@@ -13,8 +13,8 @@ interface ThemeProviderContextType {
 const ThemeProviderContext = React.createContext<ThemeProviderContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = React.useState<Theme>('dark'); // Default to dark for premium athletic track slate vibe
-  const [resolvedTheme, setResolvedTheme] = React.useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = React.useState<Theme>('light'); // Default to light for clean, premium SaaS vibe
+  const [resolvedTheme, setResolvedTheme] = React.useState<'light' | 'dark'>('light');
 
   React.useEffect(() => {
     const root = window.document.documentElement;

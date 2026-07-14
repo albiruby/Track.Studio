@@ -1,4 +1,7 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
+import { environment, assertStravaConfigured } from '@/lib/config/environment';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -11,19 +14,20 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const clientId = process.env.STRAVA_CLIENT_ID;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
-
-  if (!clientId) {
+  try {
+    assertStravaConfigured();
+  } catch (err: any) {
     return NextResponse.json(
-      { error: 'Strava API is not configured on this server. Ensure STRAVA_CLIENT_ID is defined in environment variables.' },
+      { error: `Strava API is not configured on this server. Ensure STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, and STRAVA_REDIRECT_URI are defined in environment variables. Error: ${err.message}` },
       { status: 400 }
     );
   }
 
-  const redirectUri = `${baseUrl}/api/integrations/strava/callback`;
-  const authorizeUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-    redirectUri
+  const clientId = environment.strava.clientId;
+  const redirectUri = environment.strava.redirectUri;
+  
+  const authorizeUrl = `${environment.strava.oauthUrl}/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+    redirectUri!
   )}&response_type=code&scope=activity:read_all,profile:read&state=${encodeURIComponent(userId)}`;
 
   return NextResponse.redirect(authorizeUrl);

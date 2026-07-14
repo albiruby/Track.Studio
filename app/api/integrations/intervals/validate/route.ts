@@ -1,15 +1,23 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
+import { environment, assertIntervalsConfigured } from '@/lib/config/environment';
 
 export async function POST(req: NextRequest) {
   try {
-    const { athleteId, apiKey, userId } = await req.json();
+    const { userId } = await req.json().catch(() => ({}));
 
-    if (!athleteId || !apiKey) {
+    try {
+      assertIntervalsConfigured();
+    } catch (err: any) {
       return NextResponse.json(
-        { error: 'Athlete ID and API Key are required.' },
+        { error: `Intervals.icu is not configured on the server. Ensure INTERVALS_ATHLETE_ID and INTERVALS_API_KEY are defined in environment variables. Error: ${err.message}` },
         { status: 400 }
       );
     }
+
+    const athleteId = environment.intervals.athleteId!;
+    const apiKey = environment.intervals.apiKey!;
 
     const cleanId = athleteId.trim();
     const cleanKey = apiKey.trim();
@@ -17,8 +25,8 @@ export async function POST(req: NextRequest) {
     // Call intervals.icu API
     const authHeader = 'Basic ' + Buffer.from(`APIKEY:${cleanKey}`).toString('base64');
     
-    // We fetch athlete info to validate credentials
-    const response = await fetch(`https://intervals.icu/api/v1/athlete/${cleanId}`, {
+    // We fetch athlete info to validate credentials using environment configured API base URL
+    const response = await fetch(`${environment.intervals.apiBaseUrl}/athlete/${cleanId}`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,
@@ -29,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
         return NextResponse.json(
-          { error: 'Unauthorized: Invalid API Key or Athlete ID.' },
+          { error: 'Unauthorized: Invalid API Key or Athlete ID configured in environment variables.' },
           { status: 401 }
         );
       }

@@ -34,6 +34,21 @@ interface SyncProgressPanelProps {
   onClose?: () => void;
 }
 
+const STAGE_NAMES = [
+  'Authenticating',
+  'Checking Permissions',
+  'Fetching Activities',
+  'Fetching Streams',
+  'Fetching Laps',
+  'Fetching Equipment',
+  'Fetching Routes',
+  'Normalizing',
+  'Validating',
+  'Saving',
+  'Rebuilding Analytics',
+  'Completed'
+];
+
 export function SyncProgressPanel({ userId, providerId, onClose }: SyncProgressPanelProps) {
   const { toast } = useToast();
   const [activeJob, setActiveJob] = useState<SyncJob | null>(null);
@@ -42,6 +57,40 @@ export function SyncProgressPanel({ userId, providerId, onClose }: SyncProgressP
   const [historyLogs, setHistoryLogs] = useState<AuditLogRecord[]>([]);
   const [errorLogs, setErrorLogs] = useState<IngestionErrorRecord[]>([]);
   const [tab, setTab] = useState<'current' | 'history' | 'errors'>('current');
+  const [nowTime, setNowTime] = useState<number>(Date.now());
+
+  // Periodically refresh timer for elapsed calculation
+  useEffect(() => {
+    if (activeJob?.status === 'running') {
+      const timer = setInterval(() => {
+        setNowTime(Date.now());
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [activeJob?.status]);
+
+  // Derive progress estimations
+  const getProgressEstimation = () => {
+    if (!activeJob || activeJob.status !== 'running' || !activeJob.startedAt) return null;
+    const started = new Date(activeJob.startedAt).getTime();
+    const elapsedSeconds = Math.max((nowTime - started) / 1000, 1);
+    
+    // Estimate speed based on itemsProcessed
+    const items = activeJob.itemsProcessed || 0;
+    const speed = items / elapsedSeconds; // items per second
+
+    // Estimate remaining time based on current progress percentage
+    const progress = activeJob.progress || 1;
+    const totalEstSeconds = (elapsedSeconds / progress) * 100;
+    const remainingSeconds = Math.max(totalEstSeconds - elapsedSeconds, 0);
+
+    return {
+      speed: speed.toFixed(1),
+      remaining: remainingSeconds.toFixed(0),
+    };
+  };
+
+  const ests = getProgressEstimation();
 
   // Trigger Sync Job
   const triggerSync = async () => {
@@ -322,9 +371,9 @@ export function SyncProgressPanel({ userId, providerId, onClose }: SyncProgressP
                 </div>
 
                 {/* Progress Bar */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[10px] font-mono">
-                    <span className="text-muted-foreground">Synchronization Progress:</span>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[10px] font-mono leading-none">
+                    <span className="text-muted-foreground uppercase tracking-wider text-[8px] font-bold">Pipeline Ingestion Progress</span>
                     <span className="font-bold text-foreground">{activeJob.progress}%</span>
                   </div>
                   <div className="w-full bg-secondary/50 h-2 rounded overflow-hidden border border-border">
@@ -335,29 +384,103 @@ export function SyncProgressPanel({ userId, providerId, onClose }: SyncProgressP
                       transition={{ duration: 0.3 }}
                     />
                   </div>
+                  {ests && (
+                    <div className="flex justify-between text-[9px] font-mono text-muted-foreground pt-0.5 leading-none">
+                      <span>Ingest Velocity: <b>{ests.speed} records/sec</b></span>
+                      <span>Est. Remaining: <b>{ests.remaining}s</b></span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Event Steps Feed */}
-                <div className="p-3 bg-muted/30 border border-border rounded-lg space-y-2 text-[11px] font-mono">
-                  <div className="flex justify-between border-b border-border/60 pb-1 text-[10px] text-muted-foreground uppercase">
-                    <span>In-Flight Stage</span>
-                    <span>State Indicator</span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Current Ingest Page:</span>
-                    <span className="font-bold text-foreground">{activeJob.currentPage || '--'}</span>
+                {/* 12-Stage Vertical Timeline */}
+                <div className="space-y-2 border border-border rounded-lg bg-muted/25 p-3">
+                  <div className="flex justify-between border-b border-border/50 pb-1.5 text-[9px] font-mono text-muted-foreground uppercase tracking-wider leading-none">
+                    <span>Pipeline Progression Timeline</span>
+                    <span>Current Ingest Page: <b>{activeJob.currentPage || 1}</b></span>
                   </div>
 
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Cooldown Backoffs:</span>
-                    <span className={`font-bold ${activeJob.retryCount > 0 ? 'text-status-warning' : 'text-foreground'}`}>
-                      {activeJob.retryCount}
-                    </span>
+                  <div className="space-y-3.5 max-h-[190px] overflow-y-auto pr-1 text-[11px] font-mono scrollbar-thin">
+                    {STAGE_NAMES.map((stageName, idx) => {
+                      const stageObj = activeJob.stages?.[stageName] || {
+                        name: stageName,
+                        status: 'pending',
+                        elapsedTimeMs: 0,
+                        processedRecords: 0,
+                        warnings: [],
+                        errors: []
+                      };
+
+                      const statusColors = {
+                        pending: 'text-muted-foreground/30 border-muted-foreground/20 bg-muted/5',
+                        running: 'text-sky-500 border-sky-500/40 bg-sky-500/5 animate-pulse',
+                        completed: 'text-status-success border-status-success bg-status-success/5',
+                        completed_with_warnings: 'text-status-warning border-status-warning bg-status-warning/5',
+                        warning: 'text-status-warning border-status-warning bg-status-warning/5',
+                        failed: 'text-status-danger border-status-danger bg-status-danger/5'
+                      };
+
+                      const dotColors = {
+                        pending: 'bg-muted-foreground/20',
+                        running: 'bg-sky-500 animate-pulse',
+                        completed: 'bg-status-success',
+                        completed_with_warnings: 'bg-status-warning',
+                        warning: 'bg-status-warning',
+                        failed: 'bg-status-danger'
+                      };
+
+                      return (
+                        <div key={stageName} className="relative flex items-start gap-3 pl-1.5">
+                          {/* Connector line */}
+                          {idx < STAGE_NAMES.length - 1 && (
+                            <div className="absolute left-3 top-4.5 bottom-0 w-0.5 bg-border/40" style={{ transform: 'translateX(-50%)' }} />
+                          )}
+
+                          {/* Dot indicator */}
+                          <div className={`relative z-10 h-3 w-3 rounded-full border flex items-center justify-center shrink-0 mt-1 ${statusColors[stageObj.status] || statusColors.pending}`}>
+                            <div className={`h-1.5 w-1.5 rounded-full ${dotColors[stageObj.status] || dotColors.pending}`} />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className={`font-bold truncate ${stageObj.status === 'running' ? 'text-sky-500' : stageObj.status === 'completed' ? 'text-foreground' : 'text-muted-foreground/70'}`}>
+                                {idx + 1}. {stageName}
+                              </span>
+                              <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground shrink-0 leading-none">
+                                {stageObj.status === 'running' && (
+                                  <span className="text-[8px] uppercase font-bold tracking-widest text-sky-500 animate-pulse">active</span>
+                                )}
+                                {stageObj.elapsedTimeMs > 0 && (
+                                  <span>{(stageObj.elapsedTimeMs / 1000).toFixed(1)}s</span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Show processed count or warning lists */}
+                            {(stageObj.processedRecords > 0 || stageObj.warnings?.length > 0 || stageObj.errors?.length > 0) && (
+                              <div className="mt-1 pl-2.5 border-l border-border/60 text-[9px] text-muted-foreground space-y-0.5 leading-normal">
+                                {stageObj.processedRecords > 0 && (
+                                  <div>Processed records: <span className="text-foreground font-bold">{stageObj.processedRecords}</span></div>
+                                )}
+                                {stageObj.warnings?.map((w, i) => (
+                                  <div key={i} className="text-status-warning flex items-center gap-1">
+                                    <span>⚠️ {w}</span>
+                                  </div>
+                                ))}
+                                {stageObj.errors?.map((e, i) => (
+                                  <div key={i} className="text-status-danger flex items-center gap-1 font-bold">
+                                    <span>❌ {e}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {activeJob.lastError && (
-                    <div className="pt-2 border-t border-border/40 space-y-1">
+                    <div className="mt-2 pt-2 border-t border-border/40 space-y-1 font-mono text-[10px]">
                       <span className="text-[9px] uppercase tracking-wider text-status-danger font-bold flex items-center gap-1">
                         <AlertOctagon className="h-3 w-3" />
                         Pipeline Exception

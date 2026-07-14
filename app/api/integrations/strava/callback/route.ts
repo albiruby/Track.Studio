@@ -1,6 +1,9 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { ConnectionRepository } from '@/lib/data-platform/repository';
 import { Connection } from '@/lib/data-platform/types';
+import { environment, assertStravaConfigured } from '@/lib/config/environment';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -8,7 +11,7 @@ export async function GET(req: NextRequest) {
   const userId = searchParams.get('state'); // Passed back as state
   const error = searchParams.get('error');
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+  const baseUrl = environment.app.url;
 
   if (error) {
     return NextResponse.redirect(`${baseUrl}/?error=${encodeURIComponent(error)}`);
@@ -18,16 +21,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/?error=Missing+code+or+state`);
   }
 
-  const clientId = process.env.STRAVA_CLIENT_ID;
-  const clientSecret = process.env.STRAVA_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
+  try {
+    assertStravaConfigured();
+  } catch (err: any) {
     return NextResponse.redirect(`${baseUrl}/?error=Strava+credentials+missing+on+server`);
   }
 
+  const clientId = environment.strava.clientId;
+  const clientSecret = environment.strava.clientSecret;
+
   try {
     // Exchange token
-    const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
+    const tokenResponse = await fetch(`${environment.strava.oauthUrl}/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

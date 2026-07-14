@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { UniversalSyncManager } from '@/lib/data-platform/ingestion/sync-manager';
 import { IngestionRepository } from '@/lib/data-platform/ingestion/repository';

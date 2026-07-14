@@ -94,14 +94,14 @@ export function DashboardPageRenderer() {
     <div className="space-y-6 w-full" id="dashboard-renderer-root">
       
       {/* GLOBAL CONTROL CENTER RAIL */}
-      <div className="bg-card/45 border border-border/70 rounded-2xl p-5 space-y-4 select-none">
+      <div className="bg-card border border-border rounded-2xl p-5 space-y-4 select-none">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/30 pb-3">
           <div className="space-y-0.5">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary block">
-              Track.Studio Command Console
+              Track.Studio Dashboard
             </span>
             <h2 className="text-sm font-extrabold text-foreground uppercase tracking-tight">
-              Interactive Scientific Workspace
+              Performance Overview
             </h2>
           </div>
           {/* Universal Time-Range Controller */}
@@ -157,8 +157,8 @@ export function DashboardPageRenderer() {
               {/* SECTION 2: PRIMARY ANALYSIS */}
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5 px-1">
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-primary">
-                    SECTION 02 // PRIMARY ANALYSIS: PHYSIOLOGICAL SYSTEM LOAD (CTL / ATL / TSB)
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
+                    Fitness & fatigue trend
                   </span>
                 </div>
                 <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200 w-full">
@@ -169,8 +169,8 @@ export function DashboardPageRenderer() {
               {/* SECTION 3: SECONDARY ANALYSIS */}
               <div className="space-y-4">
                 <div className="flex items-center gap-1.5 px-1">
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-primary">
-                    SECTION 03 // SECONDARY ANALYSIS: METRIC MATRICES & DISTRIBUTION CALIBRATIONS
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
+                    Key Metrics & Volume
                   </span>
                 </div>
                 
@@ -191,39 +191,35 @@ export function DashboardPageRenderer() {
                     <div className="space-y-3.5">
                       <div className="flex items-center justify-between border-b border-border/40 pb-2">
                         <div className="flex items-center space-x-2">
-                          <Compass className="h-4 w-4 text-[#FF6B00]" />
-                          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-foreground">
-                            Historical Peak Performance Calibration
+                          <Compass className="h-4 w-4 text-primary" />
+                          <span className="text-[11px] font-semibold text-foreground">
+                            Peak Performance Curve
                           </span>
                         </div>
-                        <span className="text-[9px] font-mono text-muted-foreground">Active Model</span>
+                        <span className="text-[10px] text-muted-foreground">Verified Curve</span>
                       </div>
                       <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        The peak duration curve evaluates anaerobic power, lactate thresholds, and neuromuscular capacities across running workouts. 
-                        Data synchronized from external providers validates that your <b>5-minute peak power</b> represents elite-tier threshold performance (5.1 W/kg).
+                        The peak duration curve evaluates power thresholds, aerobic endurance, and cardiovascular capacities across your historical running workouts. 
+                        Your current <b>5-minute peak pace</b> represents high-efficiency threshold performance.
                       </p>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 font-mono">
-                        <div className="p-2.5 rounded bg-muted/10 border border-border/50">
-                          <span className="text-[8px] text-muted-foreground block uppercase">Peak 10s:</span>
-                          <span className="text-xs font-bold text-foreground">620 Watts</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
+                        <div className="p-3 rounded-xl bg-secondary/40 border border-border/50">
+                          <span className="text-[10px] text-muted-foreground block uppercase">Peak 10s:</span>
+                          <span className="text-sm font-bold text-foreground">620 W</span>
                         </div>
-                        <div className="p-2.5 rounded bg-muted/10 border border-border/50">
-                          <span className="text-[8px] text-muted-foreground block uppercase">Peak 1min:</span>
-                          <span className="text-xs font-bold text-foreground">410 Watts</span>
+                        <div className="p-3 rounded-xl bg-secondary/40 border border-border/50">
+                          <span className="text-[10px] text-muted-foreground block uppercase">Peak 1min:</span>
+                          <span className="text-sm font-bold text-foreground">410 W</span>
                         </div>
-                        <div className="p-2.5 rounded bg-muted/10 border border-border/50">
-                          <span className="text-[8px] text-muted-foreground block uppercase">Peak 5min:</span>
-                          <span className="text-xs font-bold text-foreground">325 Watts</span>
+                        <div className="p-3 rounded-xl bg-secondary/40 border border-border/50">
+                          <span className="text-[10px] text-muted-foreground block uppercase">Peak 5min:</span>
+                          <span className="text-sm font-bold text-foreground">325 W</span>
                         </div>
-                        <div className="p-2.5 rounded bg-muted/10 border border-border/50">
-                          <span className="text-[8px] text-muted-foreground block uppercase">Peak 20min:</span>
-                          <span className="text-xs font-bold text-foreground">285 Watts</span>
+                        <div className="p-3 rounded-xl bg-secondary/40 border border-border/50">
+                          <span className="text-[10px] text-muted-foreground block uppercase">Peak 20min:</span>
+                          <span className="text-sm font-bold text-foreground">285 W</span>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-[8px] font-mono text-muted-foreground mt-4 pt-2 border-t border-border/30 flex justify-between">
-                      <span>PEAK CURVE ENGINE ACTIVE</span>
-                      <span>CALIBRATION: STABLE</span>
                     </div>
                   </div>
                 </div>
@@ -236,8 +232,8 @@ export function DashboardPageRenderer() {
               {/* SECTION 4: DATA TABLES */}
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5 px-1">
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-primary">
-                    SECTION 04 // DATA TABLES: DETAILED PERFORMANCE METRIC DIRECTORY
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
+                    Recent Activities
                   </span>
                 </div>
                 <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 transition-all duration-200">
@@ -248,14 +244,14 @@ export function DashboardPageRenderer() {
               {/* SECTION 5: CLINICAL INSIGHTS */}
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5 px-1">
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-primary">
-                    SECTION 05 // INSIGHTS: CLINICAL PATHWAY DIAGNOSTICS & DECISION SYSTEMS
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
+                    Training Insights
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   
                   {/* Card 1: Ramp Rate Diagnostic */}
-                  <div className="p-4 rounded-2xl border border-border/80 bg-card hover:border-primary/20 transition-all duration-200 flex flex-col justify-between select-none">
+                  <div className="p-4.5 rounded-2xl border border-border bg-card hover:border-primary/25 hover:shadow-sm transition-all duration-300 flex flex-col justify-between select-none">
                     <div className="space-y-2">
                       <div className="flex items-center gap-1.5">
                         {rampRate <= 7 ? (
@@ -263,9 +259,9 @@ export function DashboardPageRenderer() {
                         ) : (
                           <AlertOctagon className="h-4 w-4 text-rose-500" />
                         )}
-                        <span className="text-[10px] font-mono font-bold uppercase text-foreground">Ramp Rate Calibration</span>
+                        <span className="text-xs font-bold text-foreground">Ramp Rate Status</span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground leading-normal">
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
                         Your current CTL ramp rate is <b>+{rampRate.toFixed(1)} TSS/week</b>. 
                         {rampRate <= 7 
                           ? " This is well within the safe building threshold (< 7.0/wk), allowing stable cardiovascular adaptation without triggering overuse injuries."
@@ -273,11 +269,10 @@ export function DashboardPageRenderer() {
                         }
                       </p>
                     </div>
-                    <span className="text-[8px] font-mono text-muted-foreground uppercase block mt-3">Metric Invariant: Safe Range</span>
                   </div>
 
                   {/* Card 2: Training Stress Balance (Form) */}
-                  <div className="p-4 rounded-2xl border border-border/80 bg-card hover:border-primary/20 transition-all duration-200 flex flex-col justify-between select-none">
+                  <div className="p-4.5 rounded-2xl border border-border bg-card hover:border-primary/25 hover:shadow-sm transition-all duration-300 flex flex-col justify-between select-none">
                     <div className="space-y-2">
                       <div className="flex items-center gap-1.5">
                         {tsb >= -15 ? (
@@ -285,9 +280,9 @@ export function DashboardPageRenderer() {
                         ) : (
                           <AlertOctagon className="h-4 w-4 text-amber-500" />
                         )}
-                        <span className="text-[10px] font-mono font-bold uppercase text-foreground">TSB Balance Diagnostics</span>
+                        <span className="text-xs font-bold text-foreground">Training Balance</span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground leading-normal">
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
                         Training Stress Balance stands at <b>{tsb.toFixed(1)} TSS</b>. 
                         {tsb >= -10 && tsb <= 5 
                           ? " This form index places you in the Optimal Training Zone. Your body is assimilating the chronic workload effectively."
@@ -297,22 +292,19 @@ export function DashboardPageRenderer() {
                         }
                       </p>
                     </div>
-                    <span className="text-[8px] font-mono text-muted-foreground uppercase block mt-3">Metric Invariant: Form Diagnostics</span>
                   </div>
 
                   {/* Card 3: Systemic Homeostasis status */}
-                  <div className="p-4 rounded-2xl border border-border/80 bg-card hover:border-primary/20 transition-all duration-200 flex flex-col justify-between select-none">
+                  <div className="p-4.5 rounded-2xl border border-border bg-card hover:border-primary/25 hover:shadow-sm transition-all duration-300 flex flex-col justify-between select-none">
                     <div className="space-y-2">
                       <div className="flex items-center gap-1.5">
                         <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                        <span className="text-[10px] font-mono font-bold uppercase text-foreground">Systemic Homeostasis Status</span>
+                        <span className="text-xs font-bold text-foreground">Synchronization Status</span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground leading-normal">
-                        Fidelity sync locks are verified at <b>99.8%</b>. Oxygen kinetics, threshold paces, and heart rate reserves demonstrate optimal systemic alignment. 
-                        No telemetry anomalies or data corruptions detected in the active pipeline.
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        Fidelity sync locks are successfully verified. Heart rate zones, pace profiles, and peak power curves are fully aligned with your latest uploads from Strava and Garmin.
                       </p>
                     </div>
-                    <span className="text-[8px] font-mono text-muted-foreground uppercase block mt-3">Metric Invariant: Quality Engine</span>
                   </div>
                 </div>
               </div>

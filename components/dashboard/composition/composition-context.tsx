@@ -34,6 +34,11 @@ export function CompositionProvider({ children }: { children: React.ReactNode })
   // Sync state when preferences or width or dashboard change
   const refreshLayout = useCallback(() => {
     try {
+      if (activeDashboardId === 'activity_analysis') {
+        setPreferences(null);
+        setResolvedLayout(null);
+        return;
+      }
       const activePrefs = DashboardCompositionEngine.getPreferences(activeDashboardId);
       const layout = DashboardCompositionEngine.compose(activeDashboardId, width, activePrefs);
       setPreferences(activePrefs);
@@ -65,12 +70,14 @@ export function CompositionProvider({ children }: { children: React.ReactNode })
 
   // Actions
   const updatePreferences = useCallback((updates: Partial<CompositionPreferences>) => {
+    if (activeDashboardId === 'activity_analysis') return;
     const updated = DashboardCompositionEngine.updatePreferences(activeDashboardId, updates);
     setPreferences(updated);
     setResolvedLayout(DashboardCompositionEngine.compose(activeDashboardId, width, updated));
   }, [activeDashboardId, width]);
 
   const setWidgetVisibility = useCallback((widgetId: string, isVisible: boolean) => {
+    if (activeDashboardId === 'activity_analysis') return;
     const updated = DashboardCompositionEngine.setWidgetVisibility(activeDashboardId, widgetId, isVisible);
     setPreferences(updated);
     setResolvedLayout(DashboardCompositionEngine.compose(activeDashboardId, width, updated));
@@ -82,6 +89,7 @@ export function CompositionProvider({ children }: { children: React.ReactNode })
   }, [activeDashboardId, width, toast]);
 
   const setWidgetSize = useCallback((widgetId: string, size: WidgetSize) => {
+    if (activeDashboardId === 'activity_analysis') return;
     const updated = DashboardCompositionEngine.setWidgetSize(activeDashboardId, widgetId, size);
     setPreferences(updated);
     setResolvedLayout(DashboardCompositionEngine.compose(activeDashboardId, width, updated));
@@ -93,12 +101,14 @@ export function CompositionProvider({ children }: { children: React.ReactNode })
   }, [activeDashboardId, width, toast]);
 
   const toggleSectionCollapse = useCallback((widgetId: string) => {
+    if (activeDashboardId === 'activity_analysis') return;
     const updated = DashboardCompositionEngine.toggleSectionCollapse(activeDashboardId, widgetId);
     setPreferences(updated);
     setResolvedLayout(DashboardCompositionEngine.compose(activeDashboardId, width, updated));
   }, [activeDashboardId, width]);
 
   const resetLayout = useCallback(() => {
+    if (activeDashboardId === 'activity_analysis') return;
     const updated = DashboardCompositionEngine.reset(activeDashboardId);
     setPreferences(updated);
     setResolvedLayout(DashboardCompositionEngine.compose(activeDashboardId, width, updated));
@@ -110,6 +120,7 @@ export function CompositionProvider({ children }: { children: React.ReactNode })
   }, [activeDashboardId, width, toast]);
 
   const syncToCloud = useCallback(async () => {
+    if (activeDashboardId === 'activity_analysis') return;
     if (!preferences) return;
     toast({
       title: 'Synchronizing Compositions',
